@@ -1,0 +1,177 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+\usepackage[margin=1.0in]{geometry}  %To set margins
+\usepackage{amsmath}                 %This allows me to use the align functionality. 
+\usepackage{amsfonts}                %Math font
+\usepackage[shortlabels]{enumitem}   %For enumerated lists with labels specified
+                                     %We had to run tlmgr_install("enumitem") in R 
+\usepackage{hyperref}                %For including hyperlinks
+\usepackage{float}                   %For telling R where to put a table/figure 
+\usepackage{natbib}                  %For the bibliography 
+\usepackage{parskip}                 %Prevents indents
+\usepackage{xcolor}                  %Color text
+\usepackage{graphicx}
+\bibliographystyle{apalike}          %For the bibliography
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+	
+	\huge
+	\begin{center}
+		\textbf{MTH-245 Project Proposal}
+	\end{center}
+
+\large
+\vspace{.3cm}
+
+\textbf{Topic \& Task:} The MTH-245 project centers on multiple linear regression analysis. You will be tasked with, working in a team of two-three students, finding an interesting and robust dataset, graphically and numerically summarizing your data, choosing the ``best" multiple linear regression model, and making appropriate interpretations and conclusions. The ``best" model could be based on fit, significance, predictive ability, etc. or a combination of the above. To this point, having more than one best model is permitted. 
+
+\vspace{.2cm}
+
+\textbf{Proposal:} More details about the project will soon be provided. For now, gather with your team and have one member fill in this form and submit the PDF to Box by \textbf{Monday, November 7 by 11:59pm.} \textit{This is your project proposal and must be approved before moving on to the next stage.} 
+
+\vspace{.2cm}
+\begin{enumerate}[1.]
+	\item \textbf{\textit{Team.}} 
+	\begin{itemize}
+%%%%%% Person 1
+		\vspace{.2cm}
+		\item Name 1: Marissa Patel
+		
+%%%%%% Person 2
+		\vspace{.2cm}
+		\item Name 2: Michael Peeler
+		
+%%%%%% Person 3
+		\vspace{.2cm}
+		\item Name 3:
+	\end{itemize}
+		\vspace{.2cm}
+		
+
+\item \textbf{\textit{Dataset.}} Find an interesting and robust dataset. I've provided a few resources at the end of this document, but you are encouraged to utilize other resources as well. Using datasets from other regression-based projects is not allowed. 
+	\vspace{.2cm}
+
+\begin{enumerate}[(a)]
+%%%%%%%%%% PART (a) %%%%%%%%%%
+	\item In one or two paragraphs, provide a description/background about your data.
+	
+The data were obtained from the Women Entrepreneurship Index and Global Entrepreneurship Index report published in 2015. The research is limited to OECD countries where all data for 2015 are available at the same time in the database. The variables are either continuous quantitative or categorical. All of the variables are related to some economic characteristic of each country. Some variables are specific to the female population within the country, while other variables are based on the entire population of that country. An example would be our selected continuous quantitative response variable, the Women Entreprenuership Index, and one of our continuous quantitative predictor variables, the Entrepreneurship Index. 
+
+	
+%%%%%%%%%% PART (b) %%%%%%%%%%	
+	\item Choose \textbf{one} continuous quantitative response variable. 
+	
+	\vspace{.2cm}
+	\begin{itemize}
+		\item \textbf{Response Variable: Women Entrepreneurship Index}
+	\end{itemize}
+	\vspace{.2cm}
+		
+%%%%%%%%%% PART (c) %%%%%%%%%%		
+	\item Choose \textbf{at least 5} predictor variables; they can be a mixture of quantitative and categorical, but don't have to be. \textbf{For each variable that you pick, determine if it is categorical, continuous quantitative, or discrete quantitative.} 
+	
+	\textbf{\textcolor{blue}{Remark:}} Be careful in choosing between discrete quantitative and categorical. If your variable is discrete quantitative, but has ``few" categories, then it should be treated as categorical. If your variable is discrete quantitative, but has ``many" categories, then it should be treated as continuous quantitative. 
+	\begin{itemize}
+		\vspace{.2cm}
+		\item \textbf{Predictor Variable 1: Female Labor Force Participation Rate 2015. Continuous quantitative.}
+		\vspace{.2cm}
+		\item \textbf{Predictor Variable 2: Country Name. Catagorical.}
+		\vspace{.2cm}
+		\item \textbf{Predictor Variable 3: Nominal Variable for Developing Index. Catagorical.}
+		\vspace{.2cm}
+		\item \textbf{Predictor Variable 4: Entrepreneurship Index 2015. Continuous quantitative.}
+		\vspace{.2cm}
+		\item \textbf{Predictor Variable 5: Inflation Rate 2015. Continuous quantitative.}
+		\vspace{.2cm}
+		\item More predictor variables? 
+	\end{itemize}
+\end{enumerate}
+		\vspace{.2cm}
+		
+%%%%%%%%%% QUESTION 3 %%%%%%%%%%		
+\item \textbf{\textit{Observations.}} How many observations (rows) are in your dataset? (\textbf{50 or more})
+
+There are 60 observations in the dataset.
+
+
+\vspace{.2cm}
+%%%%%%%%%% QUESTION 4 %%%%%%%%%%
+\item \textbf{\textit{Questions.}} What research questions are of interest to you? Come up with \textbf{at least two}.
+
+\textbf{\textcolor{blue}{Remark:}} These research questions are subject to change as you progress through the project, which is okay. Consider these preliminary questions of interest. 
+	\vspace{.2cm}
+
+\begin{itemize}
+	\item \textbf{Question 1: Which of the predictor variables, if any, strongly predict the response variable?}
+	\vspace{.2cm}
+	\item \textbf{Question 2: How influential are outlier instances, if any, on the model?}
+	\vspace{.2cm}
+	\item More questions? 
+\end{itemize}
+\end{enumerate}
+
+\vspace{.2cm}
+
+\textbf{Some Resources:}
+\begin{itemize}
+	\item \href{http://users.stat.ufl.edu/~winner/datasets.html}{http://users.stat.ufl.edu/~winner/datasets.html}
+	\item \href{https://guides.emich.edu/data/free-data}{https://guides.emich.edu/data/free-data}
+	\item \href{http://www.statsci.org/datasets.html}{http://www.statsci.org/datasets.html}
+	\item \href{http://jse.amstat.org/jse_data_archive.htm}{http://jse.amstat.org/jse\_data\_archive.htm}
+	\item \href{http://www.hawkeslearning.com/Statistics/dis/datasets.html}{http://www.hawkeslearning.com/Statistics/dis/datasets.html}
+	\item \href{https://www.kaggle.com/}{https://www.kaggle.com/}
+\end{itemize}
+
+
+
+
+\end{document}
