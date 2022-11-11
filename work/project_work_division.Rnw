@@ -1,0 +1,19 @@
+\documentclass{article}
+
+\begin{document}
+
+	\huge
+	\begin{center}
+		\textbf{MTH-245 Division of Labour}
+	\end{center}
+	
+	\large 
+	\begin{enumerate}
+	
+	  \item\textbf{Marissa:} Marissa will plan to work on Part 1 of the roadmap and Part 3 of the roadmap.
+	  \item\textbf{Michael:} Michael will plan to work on Part 2 of the roadmap and Part 4 of the roadmap.
+	  
+	  Further tasks will be delegated as seen fit.
+  \end{enumerate}
+
+\end{document}

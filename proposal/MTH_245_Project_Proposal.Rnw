@@ -54,7 +54,7 @@
 %%%%%%%%%% PART (a) %%%%%%%%%%
 	\item In one or two paragraphs, provide a description/background about your data.
 	
-The data were obtained from the Women Entrepreneurship Index and Global Entrepreneurship Index report published in 2015. The research is limited to OECD countries where all data for 2015 are available at the same time in the database. The variables are either continuous quantitative or categorical. All of the variables are related to some economic characteristic of each country. Some variables are specific to the female population within the country, while other variables are based on the entire population of that country. An example would be our selected continuous quantitative response variable, the Women Entreprenuership Index, and one of our continuous quantitative predictor variables, the Entrepreneurship Index. 
+The data were obtained from the Stat2 textbook's datasets. The data contains information about a number of babies born in North Carolina in 2001, as well as information about their mothers. The variables are either continuous quantitative, discrete quantitative, or categorical, and are related either to the mother of the baby or the baby itself. An example would be our selected continuous quantitative response variable, the birth weight of the child.
 
 	
 %%%%%%%%%% PART (b) %%%%%%%%%%	
@@ -62,7 +62,7 @@ The data were obtained from the Women Entrepreneurship Index and Global Entrepre
 	
 	\vspace{.2cm}
 	\begin{itemize}
-		\item \textbf{Response Variable: Women Entrepreneurship Index}
+		\item \textbf{Response Variable: Birth Weight}
 	\end{itemize}
 	\vspace{.2cm}
 		

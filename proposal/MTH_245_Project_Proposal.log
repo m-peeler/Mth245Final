@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.19)  7 NOV 2022 13:57
+This is pdfTeX, Version 3.141592653-2.6-1.40.24 (TeX Live 2022) (preloaded format=pdflatex 2022.8.19)  10 NOV 2022 11:38
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -359,25 +359,20 @@ Package hyperref Info: Link coloring OFF on input line 65.
 
  [1
 
-{c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Overfull \hbox (9.21587pt too wide) in paragraph at lines 129--131
-[]\OT1/cmr/bx/n/12 Predictor Vari-able 3: Nom-i-nal Vari-able for De-vel-op-ing In-dex. Catagor-
- []
-
-[2] (./MTH_245_Project_Proposal.aux)
+{c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2] (./MTH_245_Project_Proposal.aux)
 Package rerunfilecheck Info: File `MTH_245_Project_Proposal.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
  10763 strings out of 479638
  170401 string characters out of 5876700
- 491679 words of memory out of 5000000
+ 490679 words of memory out of 5000000
  29171 multiletter control sequences out of 15000+600000
  471513 words of font info for 35 fonts, out of 8000000 for 9000
  14 hyphenation exceptions out of 8191
- 72i,5n,77p,776b,768s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 72i,5n,77p,593b,780s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1200.600pk><c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb><c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmbxti10.pfb><c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pfb><c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmr12.pfb><c:/Users/mdavi/AppData/Roaming/TinyTeX/texmf-dist/fonts/type1/public/amsfonts/cm/cmti12.pfb>
-Output written on MTH_245_Project_Proposal.pdf (2 pages, 77422 bytes).
+Output written on MTH_245_Project_Proposal.pdf (2 pages, 77239 bytes).
 PDF statistics:
  62 PDF objects out of 1000 (max. 8388607)
  46 compressed objects within 1 object stream
