@@ -1,0 +1,229 @@
+\documentclass{article}
+%Comments -- anything after % is not put into the PDF
+\usepackage{amsmath} %This allows me to use the align functionality.
+                     %If you find yourself trying to replicate
+                     %something you found online, ensure you're
+                     %loading the necessary packages!
+\usepackage{amsfonts}%Math font
+\usepackage{graphicx}%For including graphics
+\usepackage{hyperref}%For Hyperlinks
+\usepackage{natbib}%For the bibliography
+\usepackage{parskip}%removes indents
+\usepackage{color}%For colors
+\usepackage{paralist}
+\usepackage{enumerate}%allows us to make lists of items
+\bibliographystyle{apalike}%For the bibliography
+\usepackage[margin=0.80in]{geometry}%A way to change the length and layout of different elements
+\usepackage{float}%Improves the interface for defining floating objects such as figures and tables. 
+\newtheorem{definition}{Definition}[section]
+
+\begin{document}
+
+\begin{center}
+\textbf{MTH-245 Final project Part 2} \\
+\textbf{Fall 2022}\\
+\end{center}
+
+\vspace{.3cm}
+
+\textbf{Name: } 
+
+\vspace{.3cm}
+
+<<message=FALSE, warning=FALSE>>=
+library("tidyverse")
+library("xtable")
+library("patchwork")
+dat.births <- read_csv("/Users/marissapatel/Downloads/NCbirths.csv")  %>% dplyr::select(BirthWeightGm, RaceMom, MomRace, Smoke, Sex, MomAge, Weeks) %>% 
+  mutate( SexCat = case_when( Sex == 1 ~ "male", 
+                           Sex == 2 ~ "female")) %>% 
+  mutate( SmokeCat = case_when( Smoke == 1 ~ "yes",
+                             Smoke == 0 ~ "no"))
+@
+
+\section{Part 1: Abstract}
+
+\section{Part 2: Introduction}
+
+
+
+\section{Part 3: Exploratory Data Analysis}
+\begin{enumerate}[a.]
+\item\textbf{Graphically summarize the variables in your dataset.}
+
+<<ViolinSummary, eval=FALSE, echo=TRUE>>=
+violin.BirthWeight <- ggplot(dat.births, aes(x=BirthWeightGm, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weights")+
+  ylab(" ")+
+  ggtitle("Distribution of Birth Weights",
+          subtitle = "NCBirths Data")  
+
+
+violin.GestationPeriod <- ggplot(dat.births, aes(x=Weeks, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Weeks")+
+  ylab(" ")+
+  ggtitle("Distribution of Gestation Period",
+          subtitle = "NCBirths Data")
+
+
+violin.MomAge <- ggplot(dat.births, aes(x=MomAge, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Age (years)")+
+  ylab(" ")+
+  ggtitle("Distribution of Mothers' Ages",
+          subtitle = "NCBirths Data")  
+
+violin.Race <- ggplot(dat.births, aes(x=BirthWeightGm, y=MomRace))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weight")+
+  ylab("Races")+
+  ggtitle("Distribution of Birth Weights by Mothers' Race",
+          subtitle = "NCBirths Data")  
+
+violin.Sex <- ggplot(dat.births, aes(x=BirthWeightGm, y=SexCat))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weight")+
+  ylab("Sex")+
+  ggtitle("Distribution of Birth Weights by Childrens' Sex",
+          subtitle = "NCBirths Data")  
+
+
+violin.Smoke <- ggplot(dat.births, aes(x=BirthWeightGm, y=SmokeCat))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weights")+
+  ylab("Smokes (yes or no")+
+  ggtitle("Distribution of Birth Weights by Mothers Who Smoke",
+          subtitle = "NCBirths Data")  
+
+violin.BirthWeight + violin.GestationPeriod + violin.MomAge / 
+  violin.Race + violin.Sex + violin.Smoke
+  
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,6)>>=
+<<ViolinSummary>>
+@
+\caption{Violin plots of each variable.}
+\label{ViolinSummary}
+\end{figure}
+
+the shape of the distribution of each variable
+any unusual looking observations
+
+From \ref{ViolinSummary} we can see that there is variability in almost all of the variables have and many odd observations.
+
+<<HistogramSummary, eval=FALSE, echo=TRUE>>=
+
+histogram.BirthWeight<- ggplot(dat.births, aes(x=BirthWeightGm))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Birth Weights")+
+  ylab("Count of Weight(gm)")+
+  ggtitle("Frequencies of Birth Weights")
+
+
+histogram.Gestation<- ggplot(dat.births, aes(x=Weeks))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Gestation Period")+
+  ylab("Count of Weeks")+
+  ggtitle("Frequencies of Gestation Periods")
+
+histogram.MomAge <- ggplot(dat.births, aes(x=MomAge))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Ages of Mothers(years)")+
+  ylab("Count of Ages")+
+  ggtitle("Frequencies of Ages")
+
+histogram.BirthWeight + histogram.Gestation + histogram.MomAge 
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,4)>>=
+<<HistogramSummary>>
+@
+\caption{Grid of histograms for the quantitative variables.}
+\label{HistogramSummary}
+\end{figure}
+
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. 
+
+\item\textbf{Numerically summarize the variables in your dataset.}
+<<>>=
+sumstats <- dat.births %>% summarize(mean=mean(diff.happ),
+                                    variance=var(diff.happ),
+                                    sample_size = n())
+@
+
+\item\textbf{Create a scatterplot matrix and table of correlations.}
+<<CorrelationSummary, eval=FALSE, echo=TRUE>>=
+library(GGally)
+correlationsmatrix <- ggpairs(dat.births, columns = c(1,2, 4:7))
+
+correlationsmatrix
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,4)>>=
+<<CorrelationSummary>>
+@
+\caption{Matrix of ScatterPlots and Correlations for the variables.}
+\label{CorrelationSummary}
+\end{figure}
+
+\item\textbf{Other interesting plots.}
+
+Plot significant correlations 
+- weeks and birth weight
+
+\item\textbf{Comment on...}
+\begin{enumerate}[]
+\item{the shape of the distribution of each variable}
+\item{the relationship between the response and the quantitative predictors}
+\item{any unusual looking observations}
+\item{any other interesting takeaways}
+
+
+\end{enumerate}
+\end{enumerate}
+
+
+
+\end{document}
