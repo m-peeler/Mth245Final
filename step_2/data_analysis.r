@@ -24,6 +24,14 @@ births$Marital <- as.factor(births$Marital)
 births$Premie <- as.factor(births$Premie)
 births$Smoke <- as.factor(births$Smoke)
 births$RaceMom <- as.factor(births$RaceMom)
+births$Plural <- as.factor(births$Plural)
+
+births <- births %>% mutate(MomAgeSC = scale(MomAge, center=T, scale=T),
+                            MomAgeSq = MomAgeSC^2,
+                            WeeksSC = scale(Weeks, center=T, scale=T),
+                            WeeksSq = WeeksSC ^2,
+                            GainedSC = scale(Gained, center=T, scale=T),
+                            GainedSq = GainedSC^2)
 
 births <- births %>% mutate(WeightGmLog = log(BirthWeightGm))
 births <- births %>% mutate(WeightGmSqrt = BirthWeightGm^.5)
@@ -42,10 +50,9 @@ lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
      Marital + Gained + Smoke + Low + Premie, births) -> model.1
 
 lm(BirthWeightGm ~ Plural + Sex + 
-     scale(MomAge, center=T, scale=T) + 
-     scale(Weeks, center=T, scale=T) + RaceMom +
+     MomAgeSC + WeeksSC + RaceMom +
      Marital +
-     scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
+     GainedSC + Smoke + Low + Premie, 
    births) -> model.2
 
 lm(WeightGmLog ~ Plural + Sex + 
@@ -247,13 +254,10 @@ round(summary(model.with.squares)$coefficients,10)
 ## Using log weight
 
 model.quad.log <- lm(WeightGmLog ~ Plural + Sex + 
-                       scale(MomAge, center=T, scale=T) + 
-                       I(scale(MomAge, center=T, scale=T)^2) +
-                       scale(Weeks, center=T, scale=T) +
-                       I(scale(Weeks, center=T, scale=T)^2) +
-                       Marital + 
-                       scale(Gained, center=T, scale=T) + 
-                       I(scale(Weeks, center=T, scale=T)^2) +
+                       MomAgeSC + MomAgeSq +
+                       WeeksSC + WeeksSq +
+                       Marital + GainedSC + 
+                       GainedSq +
                        Smoke + Low, 
                      births)
 
@@ -267,3 +271,34 @@ summary(model.quad.log)$sigma
 round(summary(model.quad.log)$coefficients,10)
 
 ## May need to try to fix the high residuals in the middle of the predicted values.
+
+interact_plot(model.quad.log, pred = GainedSC, modx = Plural, plot.points = TRUE)
+interaction.plot(model.quad.log$model$GainedSC, model.quad.log$model$Plural, model.quad.log$model$WeightGmLog)
+
+ggplot(model.quad.log$model, aes(x=GainedSC, y=WeightGmLog, color=Plural)) +
+  geom_point(size=1,
+             shape=16)+
+  geom_smooth(method = "lm", se=F) +
+  theme_bw()
+
+births$Plural <- as.numeric(births$Plural)
+
+births <- births %>% mutate(PluralGainedSC = I(Plural*GainedSC))
+
+## Graph makes it look like this is good but data from trying it doesn't seem to pan out.
+
+model.quad.log.interacat <- lm(WeightGmLog ~ Plural + Sex + 
+                                 MomAgeSC + MomAgeSq +
+                                 WeeksSC + WeeksSq +
+                                 Marital + GainedSC + 
+                                 GainedSq + PluralGainedSC +
+                                 Smoke + Low, 
+                               births)
+vif(model.quad.log.interacat)
+
+plotResiduals(model.quad.log.interacat)
+
+summary(model.quad.log.interacat)$r.squared
+summary(model.quad.log.interacat)$adj.r.squared
+summary(model.quad.log.interacat)$sigma
+round(summary(model.quad.log.interacat)$coefficients,10)
