@@ -281,9 +281,7 @@ ggplot(model.quad.log$model, aes(x=GainedSC, y=WeightGmLog, color=Plural)) +
   geom_smooth(method = "lm", se=F) +
   theme_bw()
 
-births$Plural <- as.numeric(births$Plural)
-
-births <- births %>% mutate(PluralGainedSC = I(Plural*GainedSC))
+births$Plural <- as.factor(births$Plural)
 
 ## Graph makes it look like this is good but data from trying it doesn't seem to pan out.
 
@@ -291,7 +289,7 @@ model.quad.log.interacat <- lm(WeightGmLog ~ Plural + Sex +
                                  MomAgeSC + MomAgeSq +
                                  WeeksSC + WeeksSq +
                                  Marital + GainedSC + 
-                                 GainedSq + PluralGainedSC +
+                                 GainedSq + Plural*GainedSC +
                                  Smoke + Low, 
                                births)
 vif(model.quad.log.interacat)
@@ -302,3 +300,5 @@ summary(model.quad.log.interacat)$r.squared
 summary(model.quad.log.interacat)$adj.r.squared
 summary(model.quad.log.interacat)$sigma
 round(summary(model.quad.log.interacat)$coefficients,10)
+
+## Not great!
