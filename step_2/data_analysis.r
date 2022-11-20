@@ -261,9 +261,17 @@ model.quad.log <- lm(WeightGmLog ~ Plural + Sex +
                        Smoke + Low, 
                      births)
 
+model.quad.log.all.interact <- lm(WeightGmLog ~ (Plural + Sex + 
+                                    MomAgeSC + MomAgeSq +
+                                    WeeksSC + WeeksSq +
+                                    Marital + GainedSC + 
+                                    GainedSq +
+                                    Smoke + Low)^2, 
+                                  births)
+
 vif(model.quad.log)
 
-plotResiduals(model.quad.log)
+plotResiduals(model.quad.log) -> a
 
 summary(model.quad.log)$r.squared
 summary(model.quad.log)$adj.r.squared
@@ -282,23 +290,3 @@ ggplot(model.quad.log$model, aes(x=GainedSC, y=WeightGmLog, color=Plural)) +
   theme_bw()
 
 births$Plural <- as.factor(births$Plural)
-
-## Graph makes it look like this is good but data from trying it doesn't seem to pan out.
-
-model.quad.log.interacat <- lm(WeightGmLog ~ Plural + Sex + 
-                                 MomAgeSC + MomAgeSq +
-                                 WeeksSC + WeeksSq +
-                                 Marital + GainedSC + 
-                                 GainedSq + Plural*GainedSC +
-                                 Smoke + Low, 
-                               births)
-vif(model.quad.log.interacat)
-
-plotResiduals(model.quad.log.interacat)
-
-summary(model.quad.log.interacat)$r.squared
-summary(model.quad.log.interacat)$adj.r.squared
-summary(model.quad.log.interacat)$sigma
-round(summary(model.quad.log.interacat)$coefficients,10)
-
-## Not great!
