@@ -1,0 +1,332 @@
+\documentclass{article}\usepackage[]{graphicx}\usepackage[]{xcolor}
+% maxwidth is the original width if it is less than linewidth
+% otherwise use linewidth (to make sure the graphics do not exceed the margin)
+\makeatletter
+\def\maxwidth{ %
+  \ifdim\Gin@nat@width>\linewidth
+    \linewidth
+  \else
+    \Gin@nat@width
+  \fi
+}
+\makeatother
+
+\definecolor{fgcolor}{rgb}{0.345, 0.345, 0.345}
+\newcommand{\hlnum}[1]{\textcolor[rgb]{0.686,0.059,0.569}{#1}}%
+\newcommand{\hlstr}[1]{\textcolor[rgb]{0.192,0.494,0.8}{#1}}%
+\newcommand{\hlcom}[1]{\textcolor[rgb]{0.678,0.584,0.686}{\textit{#1}}}%
+\newcommand{\hlopt}[1]{\textcolor[rgb]{0,0,0}{#1}}%
+\newcommand{\hlstd}[1]{\textcolor[rgb]{0.345,0.345,0.345}{#1}}%
+\newcommand{\hlkwa}[1]{\textcolor[rgb]{0.161,0.373,0.58}{\textbf{#1}}}%
+\newcommand{\hlkwb}[1]{\textcolor[rgb]{0.69,0.353,0.396}{#1}}%
+\newcommand{\hlkwc}[1]{\textcolor[rgb]{0.333,0.667,0.333}{#1}}%
+\newcommand{\hlkwd}[1]{\textcolor[rgb]{0.737,0.353,0.396}{\textbf{#1}}}%
+\let\hlipl\hlkwb
+
+\usepackage{framed}
+\makeatletter
+\newenvironment{kframe}{%
+ \def\at@end@of@kframe{}%
+ \ifinner\ifhmode%
+  \def\at@end@of@kframe{\end{minipage}}%
+  \begin{minipage}{\columnwidth}%
+ \fi\fi%
+ \def\FrameCommand##1{\hskip\@totalleftmargin \hskip-\fboxsep
+ \colorbox{shadecolor}{##1}\hskip-\fboxsep
+     % There is no \\@totalrightmargin, so:
+     \hskip-\linewidth \hskip-\@totalleftmargin \hskip\columnwidth}%
+ \MakeFramed {\advance\hsize-\width
+   \@totalleftmargin\z@ \linewidth\hsize
+   \@setminipage}}%
+ {\par\unskip\endMakeFramed%
+ \at@end@of@kframe}
+\makeatother
+
+\definecolor{shadecolor}{rgb}{.97, .97, .97}
+\definecolor{messagecolor}{rgb}{0, 0, 0}
+\definecolor{warningcolor}{rgb}{1, 0, 1}
+\definecolor{errorcolor}{rgb}{1, 0, 0}
+\newenvironment{knitrout}{}{} % an empty environment to be redefined in TeX
+
+\usepackage{alltt}
+%Comments -- anything after % is not put into the PDF
+\usepackage{amsmath} %This allows me to use the align functionality.
+                     %If you find yourself trying to replicate
+                     %something you found online, ensure you're
+                     %loading the necessary packages!
+\usepackage{amsfonts}%Math font
+\usepackage{graphicx}%For including graphics
+\usepackage{hyperref}%For Hyperlinks
+\usepackage{natbib}%For the bibliography
+\usepackage{parskip}%removes indents
+\usepackage{color}%For colors
+\usepackage{paralist}
+\usepackage{enumerate}%allows us to make lists of items
+\bibliographystyle{apalike}%For the bibliography
+\usepackage[margin=0.80in]{geometry}%A way to change the length and layout of different elements
+\usepackage{float}%Improves the interface for defining floating objects such as figures and tables. 
+\newtheorem{definition}{Definition}[section]
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\begin{document}
+
+\begin{center}
+\textbf{MTH-245 Final project Part 2} \\
+\textbf{Fall 2022}\\
+\end{center}
+
+\vspace{.3cm}
+
+\textbf{Name: } 
+
+\vspace{.3cm}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(}\hlstr{"tidyverse"}\hlstd{)}
+\hlkwd{library}\hlstd{(}\hlstr{"xtable"}\hlstd{)}
+\hlkwd{library}\hlstd{(}\hlstr{"patchwork"}\hlstd{)}
+\hlstd{dat.births} \hlkwb{<-} \hlkwd{read_csv}\hlstd{(}\hlstr{"/Users/marissapatel/Downloads/NCbirths.csv"}\hlstd{)}  \hlopt{%>%} \hlstd{dplyr}\hlopt{::}\hlkwd{select}\hlstd{(BirthWeightGm, RaceMom, MomRace, Smoke, Sex, MomAge, Weeks)} \hlopt{%>%}
+  \hlkwd{mutate}\hlstd{(} \hlkwc{SexCat} \hlstd{=} \hlkwd{case_when}\hlstd{( Sex} \hlopt{==} \hlnum{1} \hlopt{~} \hlstr{"male"}\hlstd{,}
+                           \hlstd{Sex} \hlopt{==} \hlnum{2} \hlopt{~} \hlstr{"female"}\hlstd{))} \hlopt{%>%}
+  \hlkwd{mutate}\hlstd{(} \hlkwc{SmokeCat} \hlstd{=} \hlkwd{case_when}\hlstd{( Smoke} \hlopt{==} \hlnum{1} \hlopt{~} \hlstr{"yes"}\hlstd{,}
+                             \hlstd{Smoke} \hlopt{==} \hlnum{0} \hlopt{~} \hlstr{"no"}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error: '/Users/marissapatel/Downloads/NCbirths.csv' does not exist.}}\end{kframe}
+\end{knitrout}
+
+\section{Part 1: Abstract}
+
+\section{Part 2: Introduction}
+
+
+
+\section{Part 3: Exploratory Data Analysis}
+\begin{enumerate}[a.]
+\item\textbf{Graphically summarize the variables in your dataset.}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{violin.BirthWeight} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=BirthWeightGm,} \hlkwc{y}\hlstd{=}\hlstr{""}\hlstd{))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weights"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{" "}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Birth Weights"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+
+\hlstd{violin.GestationPeriod} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=Weeks,} \hlkwc{y}\hlstd{=}\hlstr{""}\hlstd{))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Weeks"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{" "}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Gestation Period"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+
+\hlstd{violin.MomAge} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=MomAge,} \hlkwc{y}\hlstd{=}\hlstr{""}\hlstd{))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Age (years)"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{" "}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Mothers' Ages"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+\hlstd{violin.Race} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=BirthWeightGm,} \hlkwc{y}\hlstd{=MomRace))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weight"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Races"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Birth Weights by Mothers' Race"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+\hlstd{violin.Sex} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=BirthWeightGm,} \hlkwc{y}\hlstd{=SexCat))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weight"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Sex"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Birth Weights by Childrens' Sex"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+
+\hlstd{violin.Smoke} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=BirthWeightGm,} \hlkwc{y}\hlstd{=SmokeCat))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weights"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Smokes (yes or no"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Birth Weights by Mothers Who Smoke"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+\hlstd{violin.BirthWeight} \hlopt{+} \hlstd{violin.GestationPeriod} \hlopt{+} \hlstd{violin.MomAge} \hlopt{/}
+  \hlstd{violin.Race} \hlopt{+} \hlstd{violin.Sex} \hlopt{+} \hlstd{violin.Smoke}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{figure}[H]
+\centering
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = BirthWeightGm, y = "{}"{})): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = Weeks, y = "{}"{})): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = MomAge, y = "{}"{})): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = BirthWeightGm, y = MomRace)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = BirthWeightGm, y = SexCat)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = BirthWeightGm, y = SmokeCat)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'violin.BirthWeight' not found}}\end{kframe}
+\end{knitrout}
+\caption{Violin plots of each variable.}
+\label{ViolinSummary}
+\end{figure}
+
+the shape of the distribution of each variable
+any unusual looking observations
+
+From \ref{ViolinSummary} we can see that there is variability in almost all of the variables have and many odd observations.
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{histogram.BirthWeight}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=BirthWeightGm))}\hlopt{+}
+  \hlkwd{geom_histogram}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+                 \hlkwc{color} \hlstd{=} \hlstr{"black"}\hlstd{,}
+                 \hlkwc{bins} \hlstd{=} \hlnum{5}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()} \hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weights"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Count of Weight(gm)"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Frequencies of Birth Weights"}\hlstd{)}
+
+
+\hlstd{histogram.Gestation}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=Weeks))}\hlopt{+}
+  \hlkwd{geom_histogram}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+                 \hlkwc{color} \hlstd{=} \hlstr{"black"}\hlstd{,}
+                 \hlkwc{bins} \hlstd{=} \hlnum{5}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()} \hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Gestation Period"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Count of Weeks"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Frequencies of Gestation Periods"}\hlstd{)}
+
+\hlstd{histogram.MomAge} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(dat.births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=MomAge))}\hlopt{+}
+  \hlkwd{geom_histogram}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+                 \hlkwc{color} \hlstd{=} \hlstr{"black"}\hlstd{,}
+                 \hlkwc{bins} \hlstd{=} \hlnum{5}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()} \hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Ages of Mothers(years)"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Count of Ages"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Frequencies of Ages"}\hlstd{)}
+
+\hlstd{histogram.BirthWeight} \hlopt{+} \hlstd{histogram.Gestation} \hlopt{+} \hlstd{histogram.MomAge}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{figure}[H]
+\centering
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = BirthWeightGm)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = Weeks)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggplot(dat.births, aes(x = MomAge)): object 'dat.births' not found}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'histogram.BirthWeight' not found}}\end{kframe}
+\end{knitrout}
+\caption{Grid of histograms for the quantitative variables.}
+\label{HistogramSummary}
+\end{figure}
+
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. 
+
+\item\textbf{Numerically summarize the variables in your dataset.}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlstd{sumstats} \hlkwb{<-} \hlstd{dat.births} \hlopt{%>%} \hlkwd{summarize}\hlstd{(}\hlkwc{mean}\hlstd{=}\hlkwd{mean}\hlstd{(diff.happ),}
+                                    \hlkwc{variance}\hlstd{=}\hlkwd{var}\hlstd{(diff.happ),}
+                                    \hlkwc{sample_size} \hlstd{=} \hlkwd{n}\hlstd{())}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in summarize(., mean = mean(diff.happ), variance = var(diff.happ), : object 'dat.births' not found}}\end{kframe}
+\end{knitrout}
+
+\item\textbf{Create a scatterplot matrix and table of correlations.}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{library}\hlstd{(GGally)}
+\hlstd{correlationsmatrix} \hlkwb{<-} \hlkwd{ggpairs}\hlstd{(dat.births,} \hlkwc{columns} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{1}\hlstd{,}\hlnum{2}\hlstd{,} \hlnum{4}\hlopt{:}\hlnum{7}\hlstd{))}
+
+\hlstd{correlationsmatrix}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+
+\begin{figure}[H]
+\centering
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in library(GGally): there is no package called 'GGally'}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in ggpairs(dat.births, columns = c(1, 2, 4:7)): could not find function "{}ggpairs"{}}}
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'correlationsmatrix' not found}}\end{kframe}
+\end{knitrout}
+\caption{Matrix of ScatterPlots and Correlations for the variables.}
+\label{CorrelationSummary}
+\end{figure}
+
+\item\textbf{Other interesting plots.}
+
+Plot significant correlations 
+- weeks and birth weight
+
+\item\textbf{Comment on...}
+\begin{enumerate}[]
+\item{the shape of the distribution of each variable}
+\item{the relationship between the response and the quantitative predictors}
+\item{any unusual looking observations}
+\item{any other interesting takeaways}
+
+
+\end{enumerate}
+\end{enumerate}
+
+
+
+\end{document}

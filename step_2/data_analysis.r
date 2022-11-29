@@ -253,6 +253,8 @@ round(summary(model.with.squares)$coefficients,10)
 
 ## Using log weight
 
+## Best model built
+
 model.quad.log <- lm(WeightGmLog ~ Plural + Sex + 
                        MomAgeSC + MomAgeSq +
                        WeeksSC + WeeksSq +
@@ -261,6 +263,7 @@ model.quad.log <- lm(WeightGmLog ~ Plural + Sex +
                        Smoke + Low, 
                      births)
 
+## Interaction model.
 model.quad.log.all.interact <- lm(WeightGmLog ~ (Plural + Sex + 
                                     MomAgeSC + MomAgeSq +
                                     WeeksSC + WeeksSq +
