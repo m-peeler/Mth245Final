@@ -132,7 +132,19 @@ round(summary(model.sqrt)$coefficients,10)
 round(summary(model.logqad)$coefficients,10)
 round(summary(model.sqrtlog)$coefficients,10)
 
+source("https://cipolli.com/students/code/plotResiduals.R")
 
+modelSummary <- function(model){
+  print(round(summary(model)$coefficients,10))
+  
+  print(paste("R-squared:", summary(model)$r.squared))
+  print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
+  print(paste("Sigma:", summary(model)$sigma))
+  
+  plotResiduals(model)
+}
+
+modelSummary(model.1)
 
 summary(model.1)$r.squared
 summary(model.1)$adj.r.squared
@@ -149,7 +161,6 @@ summary(model.log)$sigma
 summary(model.slog)$r.squared
 summary(model.slog)$adj.r.squared
 summary(model.slog)$sigma
-
 
 summary(model.sqrt)$r.squared
 summary(model.sqrt)$adj.r.squared
@@ -175,7 +186,6 @@ summary(model.sqrtlog)$r.squared
 summary(model.sqrtlog)$adj.r.squared
 summary(model.sqrtlog)$sigma
 
-source("https://cipolli.com/students/code/plotResiduals.R")
 plotResiduals(model.1)
 plotResiduals(model.2)
 plotResiduals(model.log)
@@ -275,6 +285,7 @@ model.quad.log.all.interact <- lm(WeightGmLog ~ (Plural + Sex +
 vif(model.quad.log)
 
 plotResiduals(model.quad.log) -> a
+
 
 summary(model.quad.log)$r.squared
 summary(model.quad.log)$adj.r.squared
