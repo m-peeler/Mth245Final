@@ -1,6 +1,20 @@
 library(tidyverse)
 library(patchwork)
 library(car)
+library("bestglm")
+
+source("https://cipolli.com/students/code/plotResiduals.R")
+
+fmodelSummary <- function(model){
+  print(round(summary(model)$coefficients,10))
+  
+  print(paste("R-squared:", summary(model)$r.squared))
+  print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
+  print(paste("Sigma:", summary(model)$sigma))
+  
+  plotResiduals(model)
+}
+
 read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv") -> births
 
 births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
@@ -39,21 +53,48 @@ births <- births %>% mutate(WeightGmS = BirthWeightGm^2)
 births <- births %>% mutate(WeightGmSLog = log(BirthWeightGm)^2)
 births <- births %>% mutate(WeightGmLogLog = log(log(BirthWeightGm)))
 births <- births %>% mutate(WeightGmLogSqr = log(BirthWeightGm^2))
-births <- births %>% mutate(WeightGmSLog = log(BirthWeightGm)^4)
+births <- births %>% mutate(WeightGmLogQuad = log(BirthWeightGm)^4)
 births <- births %>% mutate(WeightGmSqrtLog = log(BirthWeightGm)^.5)
-
+births <- births %>% mutate(WeightGmInverse = 1/(BirthWeightGm))
 
 
 lm(BirthWeightGm ~ Gained, births) %>% plotResiduals()
 
+# 2a - First Order Model
 lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
      Marital + Gained + Smoke + Low + Premie, births) -> model.1
+
+modelSummary(model.1)
 
 lm(BirthWeightGm ~ Plural + Sex + 
      MomAgeSC + WeeksSC + RaceMom +
      Marital +
      GainedSC + Smoke + Low + Premie, 
    births) -> model.2
+
+lm(BirthWeightGm ~ Plural + Sex + 
+     scale(MomAge, center=T, scale=T) + 
+     scale(Weeks, center=T, scale=T) + RaceMom +
+     Marital + 
+     scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
+   births) -> model.2.comp
+
+modelSummary(model.2)
+modelSummary(model.2.comp)
+
+
+
+##
+## Significant estimators:
+## Plural2, Plural3, Sex2, MomAge, Weeks, RaceMom2, RaceMom7,
+## Gained, Smoke1, Low
+##
+
+# Testing other iterations
+
+#Excludes non-significant estimators
+
+# Uses a logarithmic version of the data to correct for imbapances 
 
 lm(WeightGmLog ~ Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
@@ -62,6 +103,8 @@ lm(WeightGmLog ~ Plural + Sex +
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.log
 
+modelSummary(model.2)
+
 lm(WeightGmSqrt ~ Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
      scale(Weeks, center=T, scale=T) + RaceMom +
@@ -69,12 +112,16 @@ lm(WeightGmSqrt ~ Plural + Sex +
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.sqrt
 
+modelSummary(model.sqrt)
+
 lm(WeightGmS ~ Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
      scale(Weeks, center=T, scale=T) + RaceMom +
      Marital + 
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.s
+
+modelSummary(model.s)
 
 lm(scale(BirthWeightGm, center=T, scale=T) ~
      Plural + Sex + 
@@ -84,6 +131,8 @@ lm(scale(BirthWeightGm, center=T, scale=T) ~
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.sc
 
+modelSummary(model.sc)
+
 lm(WeightGmSLog ~
      Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
@@ -91,6 +140,8 @@ lm(WeightGmSLog ~
      Marital + 
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.slog
+
+modelSummary(model.slog)
 
 lm(WeightGmLogLog ~
      Plural + Sex + 
@@ -100,6 +151,8 @@ lm(WeightGmLogLog ~
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.loglog
 
+modelSummary(model.loglog)
+
 lm(WeightGmLogSqr ~
      Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
@@ -108,13 +161,17 @@ lm(WeightGmLogSqr ~
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.logsqr
 
-lm(WeightGmLogSqr ~
+modelSummary(model.logsqr)
+
+lm(WeightGmLogQuad ~
      Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
      scale(Weeks, center=T, scale=T) + RaceMom +
      Marital + 
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
-   births) -> model.logqad
+   births) -> model.logquad
+
+modelSummary(model.logquad)
 
 lm(WeightGmSqrtLog ~
      Plural + Sex + 
@@ -124,81 +181,9 @@ lm(WeightGmSqrtLog ~
      scale(Gained, center=T, scale=T) + Smoke + Low + Premie, 
    births) -> model.sqrtlog
 
+modelSummary(model.sqrtlog)
 
-round(summary(model.1)$coefficients,10)
-round(summary(model.2)$coefficients,10)
-round(summary(model.log)$coefficients,10)
-round(summary(model.sqrt)$coefficients,10)
-round(summary(model.logqad)$coefficients,10)
-round(summary(model.sqrtlog)$coefficients,10)
-
-source("https://cipolli.com/students/code/plotResiduals.R")
-
-modelSummary <- function(model){
-  print(round(summary(model)$coefficients,10))
-  
-  print(paste("R-squared:", summary(model)$r.squared))
-  print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
-  print(paste("Sigma:", summary(model)$sigma))
-  
-  plotResiduals(model)
-}
-
-modelSummary(model.1)
-
-summary(model.1)$r.squared
-summary(model.1)$adj.r.squared
-summary(model.1)$sigma
-
-summary(model.2)$r.squared
-summary(model.2)$adj.r.squared
-summary(model.2)$sigma
-
-summary(model.log)$r.squared
-summary(model.log)$adj.r.squared
-summary(model.log)$sigma
-
-summary(model.slog)$r.squared
-summary(model.slog)$adj.r.squared
-summary(model.slog)$sigma
-
-summary(model.sqrt)$r.squared
-summary(model.sqrt)$adj.r.squared
-summary(model.sqrt)$sigma
-
-summary(model.s)$r.squared
-summary(model.s)$adj.r.squared
-summary(model.s)$sigma
-
-summary(model.sc)$r.squared
-summary(model.sc)$adj.r.squared
-summary(model.sc)$sigma
-
-summary(model.slog)$r.squared
-summary(model.slog)$adj.r.squared
-summary(model.slog)$sigma
-
-summary(model.logqad)$r.squared
-summary(model.logqad)$adj.r.squared
-summary(model.logqad)$sigma
-
-summary(model.sqrtlog)$r.squared
-summary(model.sqrtlog)$adj.r.squared
-summary(model.sqrtlog)$sigma
-
-plotResiduals(model.1)
-plotResiduals(model.2)
-plotResiduals(model.log)
-plotResiduals(model.sqrt)
-plotResiduals(model.s)
-plotResiduals(model.sc)
-plotResiduals(model.slog)
-plotResiduals(model.loglog)
-plotResiduals(model.logsqr)
-plotResiduals(model.logqad)
-plotResiduals(model.sqrtlog)
-
-model.1$fitted.values
+## Scaled Centered version of model 2
 
 lm(BirthWeightGm ~ Plural + Sex + 
      scale(MomAge, center=T, scale=T) + 
@@ -207,16 +192,14 @@ lm(BirthWeightGm ~ Plural + Sex +
      scale(Gained, center=T, scale=T) + Smoke + Low, 
    births) -> model.2.new
 
+# Removes non-predictive attributes from model 1
+
 lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + Marital + Gained + Smoke + Low, births) -> model.1.new
 
-vif(model.1)
+vif(model.1.new)
 vif(model.2.new)
 
-plotResiduals(model.2.new)
-
-summary(model.2.new)$r.squared
-summary(model.2.new)$adj.r.squared
-summary(model.2.new)$sigma
+modelSummary(model.2.new)
 
 ggplot(data=model.1.new$model, aes(x=MomAge, y=residuals(model.2.new)))+
   geom_point(size=1,
@@ -273,7 +256,8 @@ model.quad.log <- lm(WeightGmLog ~ Plural + Sex +
                        Smoke + Low, 
                      births)
 
-## Interaction model.
+## Interaction model
+
 model.quad.log.all.interact <- lm(WeightGmLog ~ (Plural + Sex + 
                                     MomAgeSC + MomAgeSq +
                                     WeeksSC + WeeksSq +
@@ -282,19 +266,127 @@ model.quad.log.all.interact <- lm(WeightGmLog ~ (Plural + Sex +
                                     Smoke + Low)^2, 
                                   births)
 
+
+
 vif(model.quad.log)
+modelSummary(model.quad.log)
 
-plotResiduals(model.quad.log) -> a
+cor(model.quad.log.all.interact)
 
+vif(model.quad.log.all.interact)
+modelSummary(model.quad.log.all.interact)
 
-summary(model.quad.log)$r.squared
-summary(model.quad.log)$adj.r.squared
-summary(model.quad.log)$sigma
-round(summary(model.quad.log)$coefficients,10)
+## Methods for stepwise elemination of insignificant p-value.
+## Source: Joris Meys, https://stackoverflow.com/questions/3701170/stepwise-regression-using-p-values-to-drop-variables-with-nonsignificant-p-value
+
+# Function has.interaction checks whether x is part of a term in terms
+# terms is a vector with names of terms from a model
+has.interaction <- function(x,terms){
+  out <- sapply(terms,function(i){
+    sum(1-(strsplit(x,":")[[1]] %in% strsplit(i,":")[[1]]))==0
+  })
+  return(sum(out)>0)
+}
+
+# Function Model.select
+# model is the lm object of the full model
+# keep is a list of model terms to keep in the model at all times
+# sig gives the significance for removal of a variable. Can be 0.1 too (see SPSS)
+# verbose=T gives the F-tests, dropped var and resulting model after 
+model.select <- function(model,keep,sig=0.05,verbose=F){
+  counter=1
+  # check input
+  if(!is(model,"lm")) stop(paste(deparse(substitute(model)),"is not an lm object\n"))
+  # calculate scope for drop1 function
+  terms <- attr(model$terms,"term.labels")
+  if(missing(keep)){ # set scopevars to all terms
+    scopevars <- terms
+  } else{            # select the scopevars if keep is used
+    index <- match(keep,terms)
+    # check if all is specified correctly
+    if(sum(is.na(index))>0){
+      novar <- keep[is.na(index)]
+      warning(paste(
+        c(novar,"cannot be found in the model",
+          "\nThese terms are ignored in the model selection."),
+        collapse=" "))
+      index <- as.vector(na.omit(index))
+    }
+    scopevars <- terms[-index]
+  }
+  
+  # Backward model selection : 
+  
+  while(T){
+    # extract the test statistics from drop.
+    test <- drop1(model, scope=scopevars,test="F")
+    
+    if(verbose){
+      cat("-------------STEP ",counter,"-------------\n",
+          "The drop statistics : \n")
+      print(test)
+    }
+    
+    pval <- test[,dim(test)[2]]
+    
+    names(pval) <- rownames(test)
+    pval <- sort(pval,decreasing=T)
+    
+    if(sum(is.na(pval))>0) stop(paste("Model",
+                                      deparse(substitute(model)),"is invalid. Check if all coefficients are estimated."))
+    
+    # check if all significant
+    if(pval[1]<sig) break # stops the loop if all remaining vars are sign.
+    
+    # select var to drop
+    i=1
+    while(T){
+      dropvar <- names(pval)[i]
+      check.terms <- terms[-match(dropvar,terms)]
+      x <- has.interaction(dropvar,check.terms)
+      if(x){i=i+1;next} else {break}              
+    } # end while(T) drop var
+    
+    if(pval[i]<sig) break # stops the loop if var to remove is significant
+    
+    if(verbose){
+      cat("\n--------\nTerm dropped in step",counter,":",dropvar,"\n--------\n\n")              
+    }
+    
+    #update terms, scopevars and model
+    scopevars <- scopevars[-match(dropvar,scopevars)]
+    terms <- terms[-match(dropvar,terms)]
+    
+    formul <- as.formula(paste(".~.-",dropvar))
+    model <- update(model,formul)
+    
+    if(length(scopevars)==0) {
+      warning("All variables are thrown out of the model.\n",
+              "No model could be specified.")
+      return()
+    }
+    counter=counter+1
+  } # end while(T) main loop
+  return(model)
+}
+
+round(summary(model.quad.log)$coefficients, 4)
+
+model.select(model.quad.log.all.interact) -> model.refined
+
+modelSummary(model.refined)
+
+y <- births$WeightGmLog
+
+x <- model.matrix(model.quad.log)[,-1]
+births.scrubbed <- births %>% select(WeightGmLog, Plural, Sex, MomAgeSC, MomAgeSq,
+                                     WeeksSC, WeeksSq, Marital, GainedSC,
+                                     GainedSq, Smoke, Low)
+xy <- as.data.frame(cbind(x,y))
 
 ## May need to try to fix the high residuals in the middle of the predicted values.
 
-interact_plot(model.quad.log, pred = GainedSC, modx = Plural, plot.points = TRUE)
+## interact_plot(model.quad.log, pred = GainedSC, modx = Plural, plot.points = TRUE)
 interaction.plot(model.quad.log$model$GainedSC, model.quad.log$model$Plural, model.quad.log$model$WeightGmLog)
 
 ggplot(model.quad.log$model, aes(x=GainedSC, y=WeightGmLog, color=Plural)) +
