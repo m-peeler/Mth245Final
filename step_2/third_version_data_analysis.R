@@ -399,15 +399,17 @@ modelSummary(model.assu.rstrct)
 
 ## Removed the highst 3 values of GVIF, which were MomAgeSC*MomAgeSq, Plural*WeeksSC, and WeeksSC*Premie
 
-vif(model.assu.rstrct)
+cbind(vif(model.assu.rstrct), vif(model.assu.rstrct)[,3]^2)
 
 lm(WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + 
-             WeeksSC + Black + GainedSC + GainedSq + Smoke + Premie + 
-             Plural:WeeksSC + MomAgeSC:MomAgeSq + MomAgeSC:WeeksSC + MomAgeSC:GainedSq + 
-             MomAgeSC:Smoke + MomAgeSq:Black + MomAgeSq:GainedSC + WeeksSC:Black + 
-             WeeksSC:GainedSq + WeeksSC:Smoke + Black:Smoke + 
-             Black:Premie + GainedSq:Premie, data = births) -> min.vif.model
+     WeeksSC + Black + GainedSC + GainedSq + Smoke + Premie + 
+     Plural:WeeksSC + MomAgeSC:MomAgeSq + MomAgeSC:WeeksSC + MomAgeSC:GainedSq + 
+     MomAgeSC:Smoke + MomAgeSq:Black + MomAgeSq:GainedSC + WeeksSC:Black + 
+     WeeksSC:GainedSq + WeeksSC:Smoke + Black:Smoke + 
+     Black:Premie + GainedSq:Premie, data = births) -> min.vif.model
 
+cbind(vif(min.vif.model), vif(min.vif.model)[,3]^2)
+modelSummary(min.vif.model)
 
 
 ## Accuracy model
@@ -435,14 +437,9 @@ mod.accur.prelim.full <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + We
                                WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
                                Black:Smoke + Black:Premie, data = births)
 
-vif(mod.accur.prelim.full)
+cbind(vif(mod.accur.prelim.full), vif(mod.accur.prelim.full)[,3]^2)
 
-mod.accur.final <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
-                        Black + GainedSC + Smoke + Premie + MomAgeSC:Smoke + 
-                        WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + 
-                        Black:Smoke + Black:Premie, data = births)
-
-vif(mod.accur.final)
+mod.accur.final <- mod.accur.prelim.full
 modelSummary(mod.accur.final)
 
 step(model.part.interact.accur, direction="both")
@@ -452,12 +449,9 @@ mod.accur.prelim <- lm(formula = WeightLogSC ~ Plural + Black + Premie + Sex + M
 
 modelSummary(mod.accur.prelim, coef=F)
 
-vif(mod.accur.prelim)
+cbind(vif(mod.accur.prelim), vif(mod.accur.prelim)[,3]^2)
 
-mod.accur.final.part <- lm(formula = WeightLogSC ~ Plural + Black + Premie + Sex + MomAgeSC + 
-                             WeeksSC + GainedSC + Smoke + Plural:WeeksSC + Black:Smoke + 
-                             Premie:WeeksSC + Premie:Smoke, data = births)
-vif(mod.accur.final.part)
+mod.accur.final.part <- mod.accur.prelim
 
 modelSummary(mod.accur.final.part)
 ## Cross validation
@@ -475,9 +469,9 @@ model.cross.accur
 
 specs <- trainControl(method = "LOOCV",number = 10)
 model.cross.loo.accur <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
-                             Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
-                             WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
-                             Black:Smoke + Black:Premie,
+                                 Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                                 WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                                 Black:Smoke + Black:Premie,
                            data = births, method = "lm",trControl = specs,na.action = na.omit)
 
 model.cross.loo.accur 
@@ -498,14 +492,13 @@ model.cross.loo.assu <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC +
                                  Black:Smoke + Black:Premie,
                                data = births, method = "lm",trControl = specs,na.action = na.omit)
 
-assessModel <- function(model) {
+assessModel <- function(model, p) {
   print(modelSummary(model))
-  print(vif(model))
+  cbind(vif(model), vif(model)[,3]^2)
   print(summary(model$residual))
   print(confint(model))
   lev <- model$model %>% mutate(h.values = hatvalues(model))
   print(summary(lev$h.values))
-  p <- 2
   n <- nrow(model$model)
   high.lev <- lev %>% filter(h.values > 2*p/n)
   print(paste("High Lev.:", nrow(high.lev)))
@@ -530,7 +523,10 @@ assessModel <- function(model) {
   print(paste("Strong C. Values:", nrow(cooks.strong)))
 }
 
-assessModel(mod.accur.final)
-assessModel(mod.accur.final.part)
-assessModel(min.vif.model)
+
+assessModel(mod.accur.final, 15)
+assessModel(mod.accur.final.part, 14)
+assessModel(min.vif.model, 25)
+modelSummary(mod.accur.final)
+
 

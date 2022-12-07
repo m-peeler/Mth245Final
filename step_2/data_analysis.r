@@ -298,4 +298,7 @@ ggplot(model.quad.log$model, aes(x=GainedSC, y=WeightGmLog, color=Plural)) +
   geom_smooth(method = "lm", se=F) +
   theme_bw()
 
+
+
+
 births$Plural <- as.factor(births$Plural)

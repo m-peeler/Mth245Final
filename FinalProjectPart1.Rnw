@@ -41,6 +41,7 @@ library("car")
 library("GGally")
 library("olsrr")
 library("gridExtra")
+library("boot")
 source("https://cipolli.com/students/code/plotResiduals.R")
 @
 
@@ -55,7 +56,7 @@ NCbirths contains data from births in North Carolina in 2001, with 1450 observat
 
 <<>>=
 prepData <- function() {
-  births <- read_csv("~/Downloads/NCbirths.csv") 
+  births <- read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv")
   
   births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
                                               Sex == 2 ~ "Female"),
@@ -164,7 +165,7 @@ violin.MomAge <- ggplot(births, aes(x=MomAge, y=""))+
   ggtitle("Distribution of Mothers' Ages",
           subtitle = "NCBirths Data")  
 
-violin.MomAge + violin.BirthWeight + violin.GestationPeriod 
+violin.MomAge + violin.BirthWeightGm + violin.GestationPeriod 
   
 @
 
@@ -256,9 +257,7 @@ boot.medians <- boot(data = births$BirthWeightGm, statistic = samp.boot.med, R =
 boot.ci(boot.medians, conf = 0.95)
 @
 
-The median birth weight was 3,345.3 grams. Our confidence interval (3316.95, 3373.65) contained our median birth weight.
-
-The 95\% confidence interval for the median birthweights was 
+The median birth weight of our dataset was 3,345.3 grams. Our 95\% percentile confidence interval was 3316.95 g. to 3373.65 g. This range contained our median birth weight of 3,345.3 grams, but more than that, our confidence interval was extremely close to the reported statistics from the World Health Organization of median birth weight of 3.3 kg (The WHO did not include any additional significant figures, so we assume that this could range from values anywhere to 3.25 kg to 3.35 kg.). This seems to lend support to our decision to assume that the collected data was representative of the population, despite the lack of specific knowledge of the collection techniques. Further, it indicates to us that we have a reasonable sample even with its non-normal distribution, that was caused by its skew from data primarily relating to babies born prematurely. 
 
 \item\textbf{Numerically summarize the variables in your dataset.}
 <<>>=
@@ -388,13 +387,14 @@ First, we fit a first-order linear model with all of our predictors. The estimat
 
 \begin{align*} \hat{y} &= -964.29 + -704.71\cdot \text{I}(\text{Plural} = 2) + -932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Premie} = \text{Yes}) \end{align*}
   
-<<>>=
+  
+<<results="as.is">>=
 #first model = model.1
 lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
-     Marital + Gained + Smoke + Low + Premie, births) -> model.1
+     Marital + Gained + Smoke + Premie, births) -> model.1
 
 modelSummary(model.1, coef = TRUE)
-xtable(model.1)
+xtable(model.1, caption="Predictor Statistics and Significance", label="First.Order.Table")
 @
 
 \begin{table}[ht]
@@ -403,41 +403,18 @@ xtable(model.1)
   \hline
 R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
   \hline
-    0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
+   0.4570 & 0.4512 & 464.6719 & 21322.7497 & 21412.0105 \\ 
    \hline
 \end{tabular}
 \caption{Summary of first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
+\label{first.order.summary}
 \end{table}
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrrr}
-  \hline
-   Variable & Estimate & Std. Error & t-value & Pr($>$$|$t$|$) & Significance\\ 
-  \hline
-(Intercept) & 312.6680 & 269.4492 & 1.16 & 0.2461 & Not Significant\\ 
-  Plural2 & -334.0925 & 70.4623 & -4.74 & 0.0000 & Significant\\ 
-  Plural3 & -573.8399 & 211.1767 & -2.72 & 0.0067 & Significant \\ 
-  SexMale & 95.8608 & 22.0006 & 4.36 & 0.0000 & Significant\\ 
-  MomAge & 8.7901 & 2.0617 & 4.26 & 0.0000 & Significant\\ 
-  Weeks & 68.8625 & 6.2079 & 11.09 & 0.0000 & Significant\\ 
-  RaceMomBlack & -60.5404 & 91.0486 & -0.66 & 0.5062 & Not Significant\\ 
-  RaceMomChinese & 50.7163 & 305.0140 & 0.17 & 0.8680 & Not Significant\\ 
-  RaceMomFilipino & -841.5637 & 421.9630 & -1.99 & 0.0463 & Significant\\ 
-  RaceMomJapanese & 20.4137 & 94.6150 & 0.22 & 0.8292 & Not Significant\\ 
-  RaceMomOther Asian / PI & -59.0918 & 124.8994 & -0.47 & 0.6362 & Not Significant\\ 
-  RaceMomWhite & 16.8804 & 89.7516 & 0.19 & 0.8508 & Not Significant\\ 
-  MaritalUnmarried & -47.2980 & 28.4738 & -1.66 & 0.0969 & Not Significant\\ 
-  Gained & 6.0337 & 0.8118 & 7.43 & 0.0000 & Significant\\ 
-  SmokeYes & -161.2044 & 32.5008 & -4.96 & 0.0000 & Significant\\ 
-  Low & -972.7726 & 49.7945 & -19.54 & 0.0000 & Significant\\ 
-  PremieYes & -44.0616 & 48.1097 & -0.92 & 0.3599 & Not Significant\\ 
-   \hline
-\end{tabular}
-\label{Predictor Statistics and Significance}
-\end{table}
+As Table \ref{First.Order.Table} indicates, Plural2 (Twins), Plural3 (Triplets), Sex = Male, MomAge, Weeks, RaceMom = Filipino, Gained, Smoke = Yes, and Premie = Yes are all significant predictors. Table \ref{first.order.summary} demonstrates that the R-squared is is fairly high, meaning the model is quite predictive; however, AIC and BIC values are also extremely high, meaning that the number of predictor variables is not predictive enough to justify the variety of parameters we are using.
 
-As, Plural2, Plural3, SexMale, MomAge, Weeks, RaceMomFilipino, Gained, SmokeYes, PremieYes and Low are all significant predictors. Table 2 demonstrates that the R-squared is low and that most of the variability in ... cannot be explained by this model. 
+<<>>=
+plotResiduals(model.1)
+@
 
 Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to improve residual distribution. The model statistics for each transformation are listed in the table below. 
 
@@ -447,7 +424,7 @@ Before eliminating the non-significant variables from our model we wanted to tes
   \hline
   Transformation & R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
   \hline
-   First-order Model & 0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
+   First-order Model & 0.4570 & 0.4512 & 464.6719 & 21322.7497 & 21412.0105 \\ 
    Log of Weight & 0.5243 & 0.5192 & 0.1756 & -885.2705 & -796.0097\\ 
    Square Root of Weight & 0.4994 & 0.4940 & 4.3160 & 8137.3786 & 8226.6394\\
    Weight Squared & 0.3699 & 0.3631 & 3044641.3454 & 46086.0996 & 46175.3604\\
