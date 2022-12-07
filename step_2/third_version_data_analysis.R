@@ -3,20 +3,39 @@ library(patchwork)
 library(car)
 library(GGally)
 library(olsrr)
+library(gridExtra)
+library(caret)
+library(car)
 library("bestglm")
 library("leaps")
 source("https://cipolli.com/students/code/plotResiduals.R")
+library("qqplotr")
 
-modelSummary <- function(model){
-  print(round(summary(model)$coefficients,10))
+# Mean Absolute Residual Quantile Difference
+quantDepart <- function(model) {
+  residuals <- sort(scale(model$residuals, scale=T))
+  i <- 1:length(residuals)
+  fi <- (i - 0.5) / length(residuals)
+  x.norm <- qnorm(fi)
   
-  print(paste("R-squared:", summary(model)$r.squared))
-  print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
-  print(paste("Sigma:", summary(model)$sigma))
-  print(paste("AIC:", AIC(model)))
-  print(paste("BIC:", BIC(model)))
-  
-  plotResiduals(model)
+  mean(abs(residuals - x.norm))
+}
+
+modelSummary <- function(model, coef=T, stat=T, plot=T){
+  if(coef) {
+    print(round(summary(model)$coefficients,10))
+  }
+  if(stat) {
+    print(paste("R-squared:", summary(model)$r.squared))
+    print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
+    print(paste("Sigma:", summary(model)$sigma))
+    print(paste("AIC:", AIC(model)))
+    print(paste("BIC:", BIC(model)))
+    print(paste("Quantile Departure:", quantDepart(model)))
+  }
+  if(plot) {
+    plotResiduals(model)
+  }
 }
 
 r_squared <- function(actual, predicted) {
@@ -56,7 +75,7 @@ predictForSubsets <- function(model, class.attr, ...) {
 }
 
 prepData <- function() {
-  read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv") -> births
+  births <- read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv")
   
   births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
                                               Sex == 2 ~ "Female"),
@@ -116,6 +135,61 @@ prepData <- function() {
   
   births
   
+}
+
+interactWith <- function(data, class.attr, interactors, non.interactors){
+  for (n in non.interactors) {
+    plots <- list() 
+    for (i in interactors) {
+      newPlot <- ggplot(data=data, aes(x=get(n), y=get(class.attr), color=get(i))) +
+        geom_point(size=1,
+                   shape=16)+
+        geom_smooth(method = "lm", se=F) +
+        theme_bw() +
+        labs(x="", y=i)
+
+      plots <- append(plots, list(newPlot))
+      
+    }
+    do.call("grid.arrange", append(plots, list()))  
+    
+  }
+}
+
+predictForSubsets <- function(model, class.attr, ...) {
+  x <- list(...)
+  i <- 1
+  predPlots = list()
+  residPlots = list()
+  
+  for (v in x) {
+    v$predict <- predict(model, v)
+    v$resid <- v[[class.attr]] - v$predict
+    
+    
+    print(paste("Subset", i, "R-Squared:", r_squared(v$predict, v[[class.attr]])))
+    print(paste("Subset", i, "Mean Abs. Error:", mean(abs(v$resid))))
+    
+    ggplot(data=v, aes(x=predict, y=resid)) +
+      geom_point(size=1,
+                 shape=16)+
+      theme_bw()+
+      xlab("Predicted")+
+      ylab("Residuals")+
+      ggtitle("Predicted versus Residuals") -> residuals
+    ggplot(data=v, aes(x=predict, y=get(class.attr))) +
+      geom_point(size=1,
+                 shape=16)+
+      theme_bw()+
+      xlab("Predicted")+
+      ylab("Actual")+
+      ggtitle("Predicted versus Actual") -> predictions
+    predPlots <- append(predPlots, list(predictions))
+    residPlots <- append(residPlots, list(residuals))
+    print(predictions + residuals)
+    i <- i + 1
+  }
+  do.call("grid.arrange", append(append(predPlots, residPlots), list(ncol=length(residPlots))))
 }
 
 births <- prepData()
@@ -291,35 +365,172 @@ model.4.assu <- lm(WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + WeeksSC + B
                      GainedSC + GainedSq + Smoke + Premie, births)
 modelSummary(model.4.assu)
 
-model.4.interact.assu <- lm(WeightGmSC ~ (Plural + Sex + MomAgeSC + MomAgeSq + WeeksSC + Black +
+interact <- c("Plural", "Premie", "Black")
+non.interact <- c("MomAgeSC", "MomAgeSq", "WeeksSC", "GainedSC", "GainedSq")
+interactWith(births, "WeightGmSC", interact, non.interact)
+
+model.part.interact.assu <- lm(WeightGmSC ~ (Premie + Plural + Black) * (Plural + Sex + MomAgeSC + MomAgeSq + WeeksSC + Black +
+                                               GainedSC + GainedSq + Smoke + Premie), births)
+modelSummary(model.part.interact.assu)
+
+model.interact.assu <- lm(WeightGmSC ~ (Plural + Sex + MomAgeSC + MomAgeSq + WeeksSC + Black +
                                             GainedSC + GainedSq + Smoke + Premie)^2, births)
-modelSummary(model.4.interact.assu)
+modelSummary(model.interact.assu)
 
-step(model.4.interact.assu, direction="both") 
+## Uses model.part.interact.assu because it has fewer variables but is nearly as good.
 
-model.4.assu.rstrct <- lm(formula = WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + 
+step(model.part.interact.assu, direction="both") 
+
+model.reduce.part.interact <- lm(formula = WeightGmSC ~ Premie + Plural + Black + Sex + MomAgeSC + 
+                                   + MomAgeSq + WeeksSC + GainedSC + Smoke + Premie:MomAgeSC + 
+                                   + Premie:WeeksSC + Premie:Black + Premie:Smoke + Plural:WeeksSC + 
+                                   + Black:MomAgeSq + Black:WeeksSC + Black:Smoke, data = births)
+
+modelSummary(model.reduce.part.interact)
+
+model.assu.rstrct <- lm(formula = WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + 
                             WeeksSC + Black + GainedSC + GainedSq + Smoke + Premie + 
                             Plural:WeeksSC + MomAgeSC:MomAgeSq + MomAgeSC:WeeksSC + MomAgeSC:GainedSq + 
                             MomAgeSC:Smoke + MomAgeSq:Black + MomAgeSq:GainedSC + WeeksSC:Black + 
                             WeeksSC:GainedSq + WeeksSC:Smoke + WeeksSC:Premie + Black:Smoke + 
                             Black:Premie + GainedSq:Premie, data = births)
 
-modelSummary(model.4.assu.rstrct)
+modelSummary(model.assu.rstrct)
 
 ## Removed the highst 3 values of GVIF, which were MomAgeSC*MomAgeSq, Plural*WeeksSC, and WeeksSC*Premie
 
-regsubsets(formula = WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + 
+vif(model.assu.rstrct)
+
+lm(WeightGmSC ~ Plural + Sex + MomAgeSC + MomAgeSq + 
              WeeksSC + Black + GainedSC + GainedSq + Smoke + Premie + 
              Plural:WeeksSC + MomAgeSC:MomAgeSq + MomAgeSC:WeeksSC + MomAgeSC:GainedSq + 
              MomAgeSC:Smoke + MomAgeSq:Black + MomAgeSq:GainedSC + WeeksSC:Black + 
-             WeeksSC:GainedSq + WeeksSC:Smoke + WeeksSC:Premie + Black:Smoke + 
-             Black:Premie + GainedSq:Premie, data = births,
-           nbest=1, nvmax=15) -> out 
+             WeeksSC:GainedSq + WeeksSC:Smoke + Black:Smoke + 
+             Black:Premie + GainedSq:Premie, data = births) -> min.vif.model
 
-fit.stats <- data.frame(num.variables=1:30,
-                        adjr2 = summary(out)$adjr2,
-                        bic=summary(out)$bic)
-fit.stats
-out$
 
-modelSummary(model.4.assu.rstrct)
+
+## Accuracy model
+
+model.3.accur <- lm(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + Black +
+                      GainedSC + Smoke + Premie, births)
+modelSummary(model.3.accur)
+
+model.interact.accur <- lm(WeightLogSC ~ (Plural + Sex + MomAgeSC + WeeksSC + Black +
+                             GainedSC + Smoke + Premie)^2, births)
+modelSummary(model.interact.accur)
+
+model.part.interact.accur <- lm(WeightLogSC ~ (Plural + Black + Premie) * (Sex + MomAgeSC + WeeksSC +
+                                                 GainedSC + Smoke), births)
+modelSummary(model.part.interact.accur)
+
+step(model.interact.accur, direction="both")
+modelSummary(lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                  Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                  WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                  Black:Smoke + Black:Premie, data = births), coef=F)
+
+mod.accur.prelim.full <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                               Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                               WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                               Black:Smoke + Black:Premie, data = births)
+
+vif(mod.accur.prelim.full)
+
+mod.accur.final <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                        Black + GainedSC + Smoke + Premie + MomAgeSC:Smoke + 
+                        WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + 
+                        Black:Smoke + Black:Premie, data = births)
+
+vif(mod.accur.final)
+modelSummary(mod.accur.final)
+
+step(model.part.interact.accur, direction="both")
+mod.accur.prelim <- lm(formula = WeightLogSC ~ Plural + Black + Premie + Sex + MomAgeSC + 
+                         WeeksSC + GainedSC + Smoke + Plural:WeeksSC + Black:Smoke + 
+                         Premie:WeeksSC + Premie:Smoke, data = births)
+
+modelSummary(mod.accur.prelim, coef=F)
+
+vif(mod.accur.prelim)
+
+mod.accur.final.part <- lm(formula = WeightLogSC ~ Plural + Black + Premie + Sex + MomAgeSC + 
+                             WeeksSC + GainedSC + Smoke + Plural:WeeksSC + Black:Smoke + 
+                             Premie:WeeksSC + Premie:Smoke, data = births)
+vif(mod.accur.final.part)
+
+modelSummary(mod.accur.final.part)
+## Cross validation
+
+## How much of our training is just overfitting?
+
+specs <- trainControl(method = "CV",number = 10)
+model.cross.accur <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                             Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                             WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                             Black:Smoke + Black:Premie,
+                           data = births, method = "lm",trControl = specs,na.action = na.omit)
+
+model.cross.accur
+
+specs <- trainControl(method = "LOOCV",number = 10)
+model.cross.loo.accur <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                             Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                             WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                             Black:Smoke + Black:Premie,
+                           data = births, method = "lm",trControl = specs,na.action = na.omit)
+
+model.cross.loo.accur 
+
+specs <- trainControl(method = "CV",number = 10)
+model.cross.assu <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                             Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                             WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                             Black:Smoke + Black:Premie,
+                           data = births, method = "lm",trControl = specs,na.action = na.omit)
+
+model.cross.assu
+
+specs <- trainControl(method = "LOOCV",number = 10)
+model.cross.loo.assu <- train(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
+                                 Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+                                 WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
+                                 Black:Smoke + Black:Premie,
+                               data = births, method = "lm",trControl = specs,na.action = na.omit)
+
+assessModel <- function(model) {
+  print(modelSummary(model))
+  print(vif(model))
+  print(summary(model$residual))
+  print(confint(model))
+  lev <- model$model %>% mutate(h.values = hatvalues(model))
+  print(summary(lev$h.values))
+  p <- 2
+  n <- nrow(model$model)
+  high.lev <- lev %>% filter(h.values > 2*p/n)
+  print(paste("High Lev.:", nrow(high.lev)))
+  v.high.lev <- lev %>% filter(h.values > 3*p/n)
+  print(paste("Very High Lev.:", nrow(v.high.lev)))
+  new.resid <- model$model %>% mutate(stdres = rstandard(model),
+                                      stures = rstudent(model))
+  print("Standard Residual Quant.:")
+  print(summary(new.resid$stdres))
+  print("Studentized Residual Quant.:")
+  print(summary(new.resid$stures))
+  s.outliers.stdres <- new.resid %>% filter(abs(stdres)>3)
+  print(paste("Strong Standard Residual Outliers:", nrow(s.outliers.stdres)))
+  print(s.outliers.stdres)
+  s.outliers.stures <- new.resid %>% filter(abs(stures)>3)
+  print(paste("String Studentized Residual Outliers:", nrow(s.outliers.stures)))
+  print(s.outliers.stures)
+  cooks.values <- model$model %>% mutate(cooks = cooks.distance(model))
+  print("Cook's Values:")
+  print(summary(cooks.values$cooks))
+  cooks.strong <- cooks.values %>% filter(cooks>1)
+  print(paste("Strong C. Values:", nrow(cooks.strong)))
+}
+
+assessModel(mod.accur.final)
+assessModel(mod.accur.final.part)
+assessModel(min.vif.model)
+
