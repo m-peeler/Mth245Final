@@ -1,0 +1,596 @@
+\documentclass{article}
+%Comments -- anything after % is not put into the PDF
+\usepackage{amsmath} %This allows me to use the align functionality.
+                     %If you find yourself trying to replicate
+                     %something you found online, ensure you're
+                     %loading the necessary packages!
+\usepackage{amsfonts}%Math font
+\usepackage{graphicx}%For including graphics
+\usepackage{hyperref}%For Hyperlinks
+\usepackage{natbib}%For the bibliography
+\usepackage{parskip}%removes indents
+\usepackage{color}%For colors
+\usepackage{paralist}
+\usepackage{enumerate}%allows us to make lists of items
+\bibliographystyle{apalike}%For the bibliography
+\usepackage[margin=0.80in]{geometry}%A way to change the length and layout of different elements
+\usepackage{float}%Improves the interface for defining floating objects such as figures and tables. 
+\newtheorem{definition}{Definition}[section]
+
+\begin{document}
+
+\begin{center}
+\textbf{MTH-245 Final project Part 2} \\
+\textbf{Fall 2022}\\
+\end{center}
+
+\vspace{.3cm}
+
+\textbf{Name: } 
+
+\vspace{.3cm}
+
+<<message=FALSE, warning=FALSE>>=
+library("tidyverse")
+library("xtable")
+library("ggplot2")
+library("patchwork")
+library("bestglm")
+library("EnvStats")
+library("car")
+library("GGally")
+library("olsrr")
+library("gridExtra")
+@
+
+\section{Part 1: \textbf{Abstract}}
+\textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
+not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
+
+
+\section{Part 2: Introduction}
+According to The World Health Organization, the average weight of a baby born at 37–40 weeks ranges from 5 lb 8 oz to 8 lb 13 oz. This is 2,500 grams to 4,000 grams. Birth weight is something that we don't typically consider when we are projecting the health of our future population, but it plays an extremely important role in influencing the expectancy, quality and health of a person's life. If an infant is born with a low birth weight, they could face immediate and long term health issues. If a child is inflicted with long term health issues, they will require medical care and resources for the rest of their lives. These considerations are important population-wise, because as the population grows and the birth weight continues to decrease, there may be a strain on medical care and some resources available to those with long term health issues. Those who work in the healthcare industry regarding women and children's health, especially Obstetricians, should be informed on what social factors and behaviors within the population strongly influence birth weight so that they can provide the correct medical care and advice for each patient, accordingly. Our data is called NCbirths and comes from the Stat2Data package in R datasets. It was collected by statistician John Holcomb at Cleveland State University, from the North Carolina State Center for Health and Environmental Statistics.
+NCbirths contains data from births in North Carolina in 2001, with 1450 observations on 15 variables that include social and behavioral characteristics of the mother. The response variable of our study was BirthWeightGM, which is the baby's birth weight in grams. We hypothesized that the following variables would be the most predictive, after our background research using the Low Birth Weight study published by Stanford University: race of mother, gestation period (weeks), sex of the infant, whether just a single infant was delivered or more than one, if the mother smoked while pregnant, weight gained by mother, the mother's age. We hypothesize that gestation period will be very influential, but our study will determine which other variables are influential. The following code imports our data and alters the type of each variable. We also renamed the levels within our categorical variables, and treated them all as factors. We centered and scaled all of our quantitative variables and created more variables for each transformation conducted on the quantitaive variables. 
+
+<<>>=
+prepData <- function() {
+  births <- read_csv("~/Downloads/NCbirths.csv") 
+  
+  births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
+                                              Sex == 2 ~ "Female"),
+                              Marital = case_when(Marital == 1 ~ "Married",
+                                                  Marital == 2 ~ "Unmarried"),
+                              RaceMom = case_when(RaceMom == 1 ~ "White",
+                                                  RaceMom == 2 ~ "Black",
+                                                  RaceMom == 3 ~ "Am. Indian",
+                                                  RaceMom == 4 ~ "Chinese",
+                                                  RaceMom == 5 ~ "Japanese",
+                                                  RaceMom == 6 ~ "Hawaiian",
+                                                  RaceMom == 7 ~ "Filipino",
+                                                  RaceMom == 8 ~ "Other Asian / PI"),
+                              Smoke = case_when(Smoke == 1 ~ "Yes", 
+                                                Smoke == 0 ~ "No"),
+                              Premie = case_when(Premie == 1 ~ "Yes",
+                                                 Premie == 0~ "No"))
+  births$Sex <- as.factor(births$Sex)
+  births$Marital <- as.factor(births$Marital)
+  births$Premie <- as.factor(births$Premie)
+  births$Smoke <- as.factor(births$Smoke)
+  births$RaceMom <- as.factor(births$RaceMom)
+  births$Plural <- as.factor(births$Plural)
+  
+  births <- births %>% mutate(MomAgeSC = scale(MomAge, center=T, scale=T),
+                              MomAgeSq = MomAgeSC^2,
+                              WeeksSC = scale(Weeks, center=T, scale=T),
+                              WeeksSq = WeeksSC ^2,
+                              GainedSC = scale(Gained, center=T, scale=T),
+                              GainedSq = I(GainedSC^2))
+  
+  births <- births %>% filter(!is.na(GainedSC) & !is.na(Smoke))
+  
+  # Part 1: First-Order Model and Determinations of Necessary Transformations
+  
+  births <- births %>% mutate(WeightGmLog = log(BirthWeightGm))
+  births <- births %>% mutate(WeightGmSqrt = BirthWeightGm^.5)
+  births <- births %>% mutate(WeightGmS = BirthWeightGm^2)
+  births <- births %>% mutate(WeightGmSLog = log(BirthWeightGm)^2)
+  births <- births %>% mutate(WeightGmLogLog = log(log(BirthWeightGm)))
+  births <- births %>% mutate(WeightGmLogSqr = log(BirthWeightGm^2))
+  births <- births %>% mutate(WeightGmLogQuad = log(BirthWeightGm)^4)
+  births <- births %>% mutate(WeightGmSqrtLog = log(BirthWeightGm)^.5)
+  births <- births %>% mutate(WeightGmInverse = 1/(BirthWeightGm))
+  births <- births %>% mutate(WeightGmSC = scale(BirthWeightGm, center=T, scale=T))
+  births <- births %>% mutate(WeightLogSC = scale(WeightGmLog, center=T, scale=T))
+  
+  births <- births %>% mutate(Twin = (as.character(Plural) == "2"))
+  births <- births %>% mutate(Triplet = (as.character(Plural) == "3"))
+  births <- births %>% mutate(Filipino = (RaceMom == "Filipino"))
+  births <- births %>% mutate(Black = (RaceMom == "Black"))
+  
+  births$Twin = as.factor(births$Twin)
+  births$Triplet = as.factor(births$Triplet)
+  births$Fllipino = as.factor(births$Filipino)
+  births$Black = as.factor(births$Black)
+  
+  births
+  
+}
+
+births <- prepData()
+@
+
+\section{Part 3: Exploratory Data Analysis}
+\begin{enumerate}[a.]
+\item\textbf{Graphically summarize the variables in your dataset.}
+
+First we visualized our quantitative variables, including our response variable. 
+
+And we specifically created a boxplot for the birth weights recorded for mothers who are Black, since our research from the Stanford study indicated that race is influential in birth weight.
+
+<<ViolinSummary, eval=FALSE, echo=TRUE>>=
+violin.BirthWeightGm <- ggplot(births, aes(x=BirthWeightGm, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weights")+
+  ylab(" ")+
+  ggtitle("Distribution of Birth Weights",
+          subtitle = "NCBirths Data")  
+
+
+violin.GestationPeriod <- ggplot(births, aes(x=Weeks, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Weeks")+
+  ylab(" ")+
+  ggtitle("Distribution of Gestation Period",
+          subtitle = "NCBirths Data")
+
+
+violin.MomAge <- ggplot(births, aes(x=MomAge, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Age (years)")+
+  ylab(" ")+
+  ggtitle("Distribution of Mothers' Ages",
+          subtitle = "NCBirths Data")  
+
+violin.Race + violin.BirthWeight + violin.GestationPeriod 
+  
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,6)>>=
+<<ViolinSummary>>
+@
+\caption{Violin plots of each variable.}
+\label{ViolinSummary}
+\end{figure}
+
+the shape of the distribution of each variable
+any unusual looking observations
+
+From \ref{ViolinSummary} We can see that there is variability in almost all of the quantitative variables and they all have and many odd observations.
+
+We also wanted to visualize the distribution of these variables.
+
+<<HistogramSummary, eval=FALSE, echo=TRUE>>=
+
+histogram.BirthWeight<- ggplot(births, aes(x=BirthWeightGm))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Birth Weights")+
+  ylab("Count of Weight(gm)")+
+  ggtitle("Frequencies of Birth Weights")
+
+
+histogram.Gestation<- ggplot(births, aes(x=Weeks))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Gestation Period")+
+  ylab("Count of Weeks")+
+  ggtitle("Frequencies of Gestation Periods")
+
+histogram.MomAge <- ggplot(births, aes(x=MomAge))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Ages of Mothers(years)")+
+  ylab("Count of Ages")+
+  ggtitle("Frequencies of Ages")
+
+histogram.BirthWeight + histogram.Gestation + histogram.MomAge 
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,4)>>=
+<<HistogramSummary>>
+@
+\caption{Grid of histograms for the quantitative variables.}
+\label{HistogramSummary}
+\end{figure}
+
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. 
+
+We expected the distribution for weights and weeks to be similar in shape because typically babies that are born prematurely have low birth weights. We did find it interesting though, that the distributions showed more preemies that we initially expected. 
+
+We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to ...
+
+<<>>=
+## Bootstrapping for median weights 
+median(births$BirthWeightGm)
+
+set.seed(23)
+alpha <- 0.05
+n <- nrow(births)
+R <- 10000
+boot.stats <- rep(NA, R)
+for (i in 1:R){
+  boot.data <- sample(x = births$BirthWeightGm, size = n, replace = TRUE)
+  boot.stats[i] <- median(boot.data)
+}
+
+quantile(boot.stats, probs = c(alpha/2, 1 - alpha/2))
+
+samp.boot.med <- function(data, indicies){
+  median(data[indicies])
+}
+
+boot.medians <- boot(data = births$BirthWeightGm, statistic = samp.boot.med, R = 10000)
+boot.ci(boot.medians, conf = 0.95)
+@
+
+The 95\% confidence interval for the median birthweights was 
+
+\item\textbf{Numerically summarize the variables in your dataset.}
+<<>>=
+#add in weeks 
+(sumstats <- births %>% summarize(meanW=mean(BirthWeightGm),
+                                 medianW = median(BirthWeightGm),
+                                  varianceW=var(BirthWeightGm),
+                                 meanA=mean(MomAge),
+                                 medianA=median(MomAge),
+                                 varianceA = var(MomAge),
+                                 meanWeeks = mean(Weeks),
+                                 medianWeeks = median(Weeks),
+                                 varianceWeeks = var(Weeks)))
+
+@
+
+Tableu visual
+
+\item\textbf{Create a scatterplot matrix and table of correlations.}
+<<CorrelationSummary, eval=FALSE, echo=TRUE>>=
+library(GGally)
+#ADD IN CORRECT VARIABLE NAMES
+correlationsmatrix <- ggpairs(births, columns = c())
+
+correlationsmatrix
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(11,4)>>=
+<<CorrelationSummary>>
+@
+\caption{Matrix of ScatterPlots and Correlations for the variables.}
+\label{CorrelationSummary}
+\end{figure}
+
+\item\textbf{Other interesting plots.}
+
+Plot significant correlations 
+- weeks and birth weight
+
+\item\textbf{Comment on...}
+\begin{enumerate}[]
+\item{the shape of the distribution of each variable}
+\item{the relationship between the response and the quantitative predictors}
+\item{any unusual looking observations}
+\item{any other interesting takeaways}
+\end{enumerate}
+\end{enumerate}
+
+\section{Part 4: First-Order Model and Model Selection.}
+
+First we created some functions that...
+
+<<>>=
+#create functions
+modelSummary <- function(model){
+  print(round(summary(model)$coefficients,10))
+  
+  print(paste("R-squared:", summary(model)$r.squared))
+  print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
+  print(paste("Sigma:", summary(model)$sigma))
+  print(paste("AIC:", AIC(model)))
+  print(paste("BIC:", BIC(model)))
+  
+  plotResiduals(model)
+}
+
+r_squared <- function(actual, predicted) {
+  cor(actual, predicted)^2
+}
+
+predictForSubsets <- function(model, class.attr, ...) {
+  x <- list(...)
+  i <- 1
+  predPlots = list()
+  residPlots = list()
+  for (v in x) {
+    v$predict <- predict(model, v)
+    v$resid <- v[[class.attr]] - v$predict
+    
+    
+    print(paste("Subset", i, "R-Squared:", r_squared(v$predict, v[[class.attr]])))
+    print(paste("Subset", i, "Mean Abs. Error:", mean(abs(v$resid))))
+    
+    ggplot(data=v, aes(x=predict, y=resid)) +
+      geom_point(size=1,
+                 shape=16)+
+      theme_bw()+
+      xlab("Predicted")+
+      ylab("Residuals")+
+      ggtitle("Predicted versus Residuals") -> residuals
+    ggplot(data=v, aes(x=predict, y=get(class.attr))) +
+      geom_point(size=1,
+                 shape=16)+
+      theme_bw()+
+      xlab("Predicted")+
+      ylab("Actual")+
+      ggtitle("Predicted versus Actual") -> predictions
+    print(predictions + residuals)
+    i <- i + 1
+  }
+}
+@
+
+2a - First Order Model
+
+First, we fit a first-order linear model with all of our predictors. The estimated linear regression equation is 
+\begin{align*} \hat{y} &= -964.29 + -704.71\cdot \text{I}(\text{Plural} = 2) + -932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Premie} = \text{Yes}) \end{align*}
+  
+<<>>=
+#first model = model.1
+lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
+     Marital + Gained + Smoke + Low + Premie, births) -> model.1
+
+modelSummary(model.1)
+xtable(model.1)
+@
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrr}
+  \hline
+R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
+  \hline
+    0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
+   \hline
+\end{tabular}
+\caption{Summary of first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Variable & Estimate & Std. Error & t-value & Pr($>$$|$t$|$) & Significance\\ 
+  \hline
+(Intercept) & 312.6680 & 269.4492 & 1.16 & 0.2461 & Not Significant\\ 
+  Plural2 & -334.0925 & 70.4623 & -4.74 & 0.0000 & Significant\\ 
+  Plural3 & -573.8399 & 211.1767 & -2.72 & 0.0067 & Significant \\ 
+  SexMale & 95.8608 & 22.0006 & 4.36 & 0.0000 & Significant\\ 
+  MomAge & 8.7901 & 2.0617 & 4.26 & 0.0000 & Significant\\ 
+  Weeks & 68.8625 & 6.2079 & 11.09 & 0.0000 & Significant\\ 
+  RaceMomBlack & -60.5404 & 91.0486 & -0.66 & 0.5062 & Not Significant\\ 
+  RaceMomChinese & 50.7163 & 305.0140 & 0.17 & 0.8680 & Not Significant\\ 
+  RaceMomFilipino & -841.5637 & 421.9630 & -1.99 & 0.0463 & Significant\\ 
+  RaceMomJapanese & 20.4137 & 94.6150 & 0.22 & 0.8292 & Not Significant\\ 
+  RaceMomOther Asian / PI & -59.0918 & 124.8994 & -0.47 & 0.6362 & Not Significant\\ 
+  RaceMomWhite & 16.8804 & 89.7516 & 0.19 & 0.8508 & Not Significant\\ 
+  MaritalUnmarried & -47.2980 & 28.4738 & -1.66 & 0.0969 & Not Significant\\ 
+  Gained & 6.0337 & 0.8118 & 7.43 & 0.0000 & Significant\\ 
+  SmokeYes & -161.2044 & 32.5008 & -4.96 & 0.0000 & Significant\\ 
+  Low & -972.7726 & 49.7945 & -19.54 & 0.0000 & Significant\\ 
+  PremieYes & -44.0616 & 48.1097 & -0.92 & 0.3599 & Not Significant\\ 
+   \hline
+\end{tabular}
+\end{table}
+
+As, Plural2, Plural3, SexMale, MomAge, Weeks, RaceMomFilipino, Gained, SmokeYes, PremieYes and Low are all significant predictors. Table 2 demonstrates that the R-squared is low and that most of the variability in ... cannot be explained by this model. 
+
+Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to improve residual distribution. The model statistics for each transformation are listed in the table below. 
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrrr}
+  \hline
+  Transformation & R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
+  \hline
+   First-order Model & 0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
+   Log of Weight & 0.5243 & 0.5192 & 0.1756 & -885.2705 & -796.0097\\ 
+   Square Root of Weight & 0.4994 & 0.4940 & 4.3160 & 8137.3786 & 8226.6394\\
+   Weight Squared & 0.3699 & 0.3631 & 3044641.3454 & 46086.0996 & 46175.3604\\
+   Log of Weight Squared & 0.5208 & 0.5156 & 2.6968 & 6812.1540 & 6901.4149\\
+   Log of the Log of Weight & 0.5249 & 0.5198 & 0.0231 & -6597.7982 & -6508.5374\\
+   Log of the Square Root of Weight & 0.5243 & 0.5192 & 0.3512 & 1068.0181 & 1157.2789\\
+   Square Root of the Log of Weight & 0.5250 & 0.5199 & 0.0318 & -5699.0284 & -5609.7676\\
+   Inverse of the Weight & 0.5250 & 0.5199 & 0.0318 & -5699.0284 & -5609.7676\\
+   \hline
+\end{tabular}
+\caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
+\end{table}
+
+<<>>=
+# Log of Weight
+lm(WeightGmLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.log
+
+modelSummary(model.log)
+
+# Square Root of Weight
+lm(WeightGmSqrt ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.sqrt
+
+modelSummary(model.sqrt)
+
+# Squared of Weight
+lm(WeightGmS ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.s
+
+modelSummary(model.s)
+
+# Square of the Log of Weight
+lm(WeightGmSLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.slog
+
+modelSummary(model.slog)
+
+# Log of the Log of Weight
+lm(WeightGmLogLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.loglog
+
+modelSummary(model.loglog)
+
+# Log of the Square Root of Weight
+lm(WeightGmLogSqr ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.logsqr
+
+modelSummary(model.logsqr)
+
+# Square Root of the Log of Weight
+lm(WeightGmSqrtLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.sqrtlog
+
+modelSummary(model.sqrtlog)
+
+# Inverse of the Weight
+lm(WeightGmInverse ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.inverse
+
+modelSummary(model.sqrtlog)
+@
+
+At this point, we have two potential "best models": the un-transformed weight, which
+better satisfies the assumptions behind linear regression modeling, namely the equal
+distribution of residuals. We also have the log weight model, which has higher r-squared values and lower sigma, AIC, and BIC values than most other models, meaning it is more accurate. This accuracy is, however, gained only at the expense of making residuals less equally distributed, and thus satisfies the assumptions necessary to do things like conduct statistical inference on parameters. Thus, we will be proceeding with two models, the assumptions model and the accuracy model, where one will seek to minimize departure from assumptions and the other will seek to maximize accuracy. Assumption models will use the scaled and centered gram weight as their target, while accuracy models will use the scaled and centered log of gram weight.
+
+Below is our current First-Order Model with all appropriate transformations, and numeric attributes scaled and centered.
+
+<<>>=
+#First-Order Model with All Appropriate Transformations, and Numeric Attributes Scaled & Centered
+lm(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.2.assu
+
+modelSummary(model.2.assu)
+@
+
+\begin{align*} 
+\hat{y} &= 0.0703 -1.1235\cdot \text{Twin} -1.4860\cdot \text{Triplet} + 0.1497\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 0.1058\cdot \text{MomAgeSC} + 0.4209\cdot \text{WeeksSC} \\ &\quad -0.1226\cdot \text{I}(\text{RaceMom} = \text{Black}) + 0.1296\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -1.3717\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 0.0463\cdot \text{I}(\text{RaceMom} = \text{Japanese}) \\ &\quad -0.0932\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) + 0.0491\cdot \text{I}(\text{RaceMom} = \text{White}) \\ &\quad -0.0766\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 0.1740\cdot \text{GainedSC} \\ &\quad -0.3244\cdot \text{I}(\text{Smoke} = \text{Yes}) -0.3469\cdot \text{I}(\text{Premie} = \text{Yes}) 
+\end{align*}
+
+After obtaining our new model, we were curious as to how some of the predictors influenced the data set. Preemie means that the baby was born weeks before the predicted due date, and its commonly known that preemies have low birth weights. 
+
+The code below tests the model on the data subset that only includes preemies, and the data subset that excludes preemies. We then ran the model on both and compared the results. 
+
+<<>>=
+predictForSubsets(model.2.assu, "WeightGmSC", 
+                  births, 
+                  births %>% filter(Premie=="Yes"),
+                  births %>% filter(Premie=="No"))
+
+lm(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.2.accur
+
+modelSummary(model.2.accur)
+predictForSubsets(model.2.accur, "WeightLogSC", 
+                  births,
+                  births %>% filter(Premie=="Yes"),
+                  births %>% filter(Premie=="No"))
+@
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+  \hline
+  Subset & R-Squared & Mean Absolute Error\\ 
+  \hline
+   Births & 0.4570 & 0.5714 \\ 
+   Preemies & 0.5510 & 0.7090 \\ 
+   Not Preemies & 0.1755 & 0.5511 \\
+   \hline
+\end{tabular}
+\caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
+\end{table}
+
+
+Part 2: AIC/BIC Iteration 1
+<<>>=
+## Assumptions Model
+
+x <- model.matrix(model.2.assu)[,-1]
+
+y <- births$WeightGmSC
+
+xy <- as.data.frame(cbind(x,y))
+best.subsets.aic <- bestglm(xy, IC="AIC", TopModels = 5)
+best.model.aic <- best.subsets.aic$BestModel
+modelSummary(best.model.aic)
+
+best.subsets.bic <- bestglm(xy, IC="BIC", TopModels = 5)
+best.model.bic <- best.subsets.bic$BestModel
+modelSummary(best.model.bic)
+
+regsubsets.out <- regsubsets(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+                               Marital + GainedSC + Smoke + Premie,
+                             data=births, nbest = 1, nvmax=15)
+
+as.data.frame(summary(regsubsets.out)$outmat)
+
+fit.stats <- data.frame(num.variables=1:15,
+                        adjr2 = summary(regsubsets.out)$adjr2,
+                        bic=summary(regsubsets.out)$bic)
+fit.stats
+
+## Of the models, BIC suggests removing Marital and all races
+## except Black. AIC / radj2 would retain Filipino and Marital.
+## Since there is only a single Philipino instance, we remove Filipino,
+## as well as marital since the significance is so low.
+@
+
+\section{Part 5: Final Model(s) and Conclusions.}
+Highest Accuracy Model:
+\begin{align*} 
+\hat{y} &= 0.119 + -1.165\cdot \text{I}(\text{Plural} = 2) + -2.006\cdot \text{I}(\text{Plural} = 3) + 0.104\cdot \text{I}(\text{Sex} = \text{Male}) \newline &\quad + 0.110\cdot \text{MomAgeSC} + 0.398\cdot \text{WeeksSC} - 0.272\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.150\cdot \text{GainedSC} \newline &\quad -0.303\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.393\cdot \text{I}(\text{Premie} = \text{Yes}) - 0.098\cdot \text{MomAgeSC} \cdot \text{I}(\text{Smoke} = \text{Yes}) \newline &\quad + 0.366\cdot \text{WeeksSC} \cdot \text{I}(\text{Black} = \text{TRUE}) - 0.153\cdot \text{WeeksSC} \cdot \text{GainedSC} - 0.037\cdot \text{WeeksSC} \cdot \text{I}(\text{Smoke} = \text{Yes}) \newline &\quad + 0.202\cdot \text{I}(\text{Black} = \text{TRUE}) \cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.781\cdot \text{I}(\text{Black} = \text{TRUE}) \cdot \text{I}(\text{Premie} = \text{Yes}) \end{align*}
+
+
+Highest accuracy with the slowest departure from Minimizing residuals:
+\begin{align*} 
+\hat{y} &= 0.1122 + -1.2928 \cdot \text{I}(\text{Plural} = 2) + -0.7222 \cdot \text{I}(\text{Plural} = 3) + 0.1476 \cdot \text{I}(\text{Sex} = \text{Male}) \newline &\quad + 0.1653 \cdot \text{MomAgeSC} - 0.0259 \cdot \text{MomAgeSq} + 0.4193 \cdot \text{WeeksSC} - 0.2278 \cdot \text{I}(\text{Black} = \text{TRUE}) \newline &\quad + 0.1291 \cdot \text{GainedSC} + 0.0473 \cdot \text{GainedSq} - 0.3935 \cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.2733 \cdot \text{I}(\text{Premie} = \text{Yes}) \newline &\quad - 0.0698 \cdot \text{I}(\text{Plural} = 2) \cdot \text{WeeksSC} + 0.2816 \cdot \text{I}(\text{Plural} = 3) \cdot \text{WeeksSC} - 0.0232 \cdot \text{MomAgeSC} \cdot \text{MomAgeSq} \newline &\quad -0.0237 \cdot \text{MomAgeSC} \cdot \text{WeeksSC} + 0.0304 \cdot \text{MomAgeSC} \cdot \text{GainedSq} - 0.1097 \cdot \text{MomAgeSC} \cdot \text{I}(\text{Smoke} = \text{Yes}) \newline &\quad - 0.0683 \cdot \text{MomAgeSq} \cdot \text{I}(\text{Black} = \text{TRUE}) + 0.0401 \cdot \text{MomAgeSq} \cdot \text{GainedSC} \newline &\quad - 0.0260 \cdot \text{WeeksSC} \cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.2425 \cdot \text{WeeksSC} \cdot \text{I}(\text{Black} = \text{TRUE}) \newline &\quad - 0.0703 \cdot \text{GainedSq} \cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.2656 \cdot \text{GainedSq} \cdot \text{I}(\text{Premie} = \text{Yes}) \newline &\quad +-0.2656 \cdot \text{GainedSq} \cdot \text{I}(\text{Premie} = \text{Yes}) + 0.2978 \cdot \text{I}(\text{Black} = \text{TRUE}) \cdot \text{I}(\text{Smoke} = \text{Yes}) \newline &\quad + 0.6522 \cdot \text{I}(\text{Black} = \text{TRUE}) \cdot \text{I}(\text{Premie} = \text{Yes}) 
+\end{align*}
+
+max accuracy with limited variables
+\begin{align*} 
+\hat{y} &= 0.1726 + -1.1681\cdot \text{I}(\text{Plural} = 2) + -0.9379\cdot \text{I}(\text{Plural} = 3) + -0.1535\cdot \text{I}(\text{Black} = \text{TRUE}) \newline &\quad + 0.9901\cdot \text{I}(\text{Premie} = \text{Yes}) + 0.1172\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0793\cdot \text{MomAgeSC} + 0.1775\cdot \text{WeeksSC} \newline &\quad + 0.1245\cdot \text{GainedSC} - 0.3038\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.2830\cdot \text{I}(\text{Plural} = 2)\cdot \text{WeeksSC} - 0.1058\cdot \text{I}(\text{Plural} = 3)\cdot \text{WeeksSC} \newline &\quad + 0.1665\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 1.1655\cdot \text{I}(\text{Premie} = \text{Yes})\cdot \text{WeeksSC} + 0.3570\cdot \text{I}(\text{Premie} = \text{Yes})\cdot \text{I}(\text{Smoke} = \text{Yes}) 
+\end{align*}
+
+
+\end{document}
