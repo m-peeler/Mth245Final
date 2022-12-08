@@ -38,7 +38,6 @@ library("patchwork")
 library("bestglm")
 library("EnvStats")
 library("car")
-library("caret")
 library("GGally")
 library("olsrr")
 library("gridExtra")
@@ -46,13 +45,13 @@ library("GGally")
 source("https://cipolli.com/students/code/plotResiduals.R")
 @
 
-\section{\textbf{Abstract}}
+\section{Part 1: \textbf{Abstract}}
 \textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
 not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\
 \textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \\ \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
 
 
-\section{Introduction}
+\section{Part 2: Introduction}
 According to The World Health Organization, the average weight of a baby born at 37–40 weeks ranges from 5 lb 8 oz to 8 lb 13 oz. This is 2,500 grams to 4,000 grams. Birth weight is something that we don't typically consider when we are projecting the health of our future population, but it plays an extremely important role in influencing the expectancy, quality and health of a person's life. If an infant is born with a low birth weight, they could face immediate and long term health issues. If a child is inflicted with long term health issues, they will require medical care and resources for the rest of their lives. These considerations are important population-wise, because as the population grows and the birth weight continues to decrease, there may be a strain on medical care and some resources available to those with long term health issues. Those who work in the healthcare industry regarding women and children's health, especially Obstetricians, should be informed on what social factors and behaviors within the population strongly influence birth weight so that they can provide the correct medical care and advice for each patient, accordingly. Our data is called NCbirths and comes from the Stat2Data package in R datasets. It was collected by statistician John Holcomb at Cleveland State University, from the North Carolina State Center for Health and Environmental Statistics.
 NCbirths contains data from births in North Carolina in 2001, with 1450 observations on 15 variables that include social and behavioral characteristics of the mother. The response variable of our study was BirthWeightGM, which is the baby's birth weight in grams. We hypothesized that the following variables would be the most predictive, after our background research using the Low Birth Weight study published by Stanford University: race of mother, gestation period (weeks), sex of the infant, whether just a single infant was delivered or more than one, if the mother smoked while pregnant, weight gained by mother, the mother's age. We hypothesize that gestation period will be very influential, but our study will determine which other variables are influential. The following code imports our data and alters the type of each variable. We also renamed the levels within our categorical variables, and treated them all as factors. We centered and scaled all of our quantitative variables and created more variables for each transformation conducted on the quantitaive variables. 
 
@@ -74,11 +73,11 @@ prepData <- function() {
                                                   RaceMom == 8 ~ "Other Asian / PI"),
                               Smoke = case_when(Smoke == 1 ~ "Yes", 
                                                 Smoke == 0 ~ "No"),
-                              Preemie = case_when(Premie == 1 ~ "Yes",
+                              Premie = case_when(Premie == 1 ~ "Yes",
                                                  Premie == 0~ "No"))
   births$Sex <- as.factor(births$Sex)
   births$Marital <- as.factor(births$Marital)
-  births$Preemie <- as.factor(births$Preemie)
+  births$Premie <- as.factor(births$Premie)
   births$Smoke <- as.factor(births$Smoke)
   births$RaceMom <- as.factor(births$RaceMom)
   births$Plural <- as.factor(births$Plural)
@@ -124,7 +123,7 @@ prepData <- function() {
 births <- prepData()
 @
 
-\section{Exploratory Data Analysis}
+\section{Part 3: Exploratory Data Analysis}
 We established some assumptions based of our common knowledge and preliminary research before beginning our Data Analysis. 
 
 \begin{enumerate}[a.]
@@ -264,7 +263,7 @@ We did find it interesting though, that the premature weights in the dataset inf
 
 We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether the instances of low birth weights affected the lower end of our confidence interval for median birth weights. 
 
-<<eval=FALSE>>=
+<<>>=
 ## Bootstrapping for median weights 
 median(births$BirthWeightGm)
 
@@ -290,7 +289,7 @@ boot.ci(boot.medians, conf = 0.95)
 
 The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our CI = $(3316.95, 3373.65)$ contained our median birth weight, and the lower bound aligned with the World Health Organization's statistic of 3,300 grams. We determined that the premature instances were not as influential as we suspected, and we continued without additional changes to the dataset. 
 
-\item\textbf{Numerically summarize the variables in your dataset.}
+<<>>=
 #add in weeks 
 (sumstats <- births %>% summarize(meanW=mean(BirthWeightGm),
                                  medianW = median(BirthWeightGm),
@@ -350,17 +349,10 @@ From \ref{CorrelationSummary} we can see that the relationship between birth wei
 
 \end{enumerate}
 
-Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This attribute is originally calculated off of birth weight, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model from data that we could not know without having already had the response variable provided to us.
+\section{Part 4: First-Order Model and Model Selection.}
 
-\section{First-Order Model and Model Selection.}
+First we created some functions that...
 
-Before we began generating models, we first built several functions that would make analysis of the data more straightforward. One of these was to measure a statistic we devised and termed the "quantile departure" (QD) statistic. After scaling the residuals and sorting them in order, it measures how much the actual quantile positioning of each residual in a model departs from the theoretical quantiles of the model, calculated using q-norm. The value it returns is equivalent to: 
-
-\begin{align*}
-\frac{\sum_{i=1}^{n}|R_i - T_i|}{n}
-\end{align*}
-
-where $R_i$ is equal to the $i^{th}$ lowest actual residual and $T_i$ is the $i^{th}$ lowest theoretical residual. A higher value would indicate a higher departure from the theoretical quantiles, while a lower value would indicate residuals more consistent with the theoretical quantiles. 
 <<>>=
 #create functions
 #Calculates the residuals departure from the theoretical quantiles, returning the mean abs() value of the actual minus theoretical quantiles 
@@ -381,7 +373,7 @@ modelSummary <- function(model, coef=T, stat=T, plot=T){
   if(stat) {
     print(paste("R-squared:", summary(model)$r.squared))
     print(paste("Adjusted R-Squared:", summary(model)$adj.r.squared))
-    print(paste("RMSE:", summary(model)$sigma))
+    print(paste("Sigma:", summary(model)$sigma))
     print(paste("AIC:", AIC(model)))
     print(paste("BIC:", BIC(model)))
     print(paste("Quantile Departure:", quantDepart(model)))
@@ -397,260 +389,255 @@ r_squared <- function(actual, predicted) {
 }
 
 #If provided with a model and a number of subsets of data, this will generate summary statistics for those subsets 
-predictForSubsets <- function(model, class.attr, ..., names=c()) {
+predictForSubsets <- function(model, class.attr, ...) {
   x <- list(...)
   i <- 1
-  residPlots <- list()
-  predPlots <- list()
+  predPlots = list()
+  residPlots = list()
   for (v in x) {
     v$predict <- predict(model, v)
     v$resid <- v[[class.attr]] - v$predict
-    subsetName <- ""
-    if (length(names) >= i) {
-      subsetName <- names[i]
-    } else {
-      subsetName <- paste("Subset", i)
-    }
-    print(paste(subsetName, "R-Squared:", r_squared(v$predict, v[[class.attr]])))
-    print(paste(subsetName, "Mean Abs. Error:", mean(abs(v$resid))))
+    
+    
+    print(paste("Subset", i, "R-Squared:", r_squared(v$predict, v[[class.attr]])))
+    print(paste("Subset", i, "Mean Abs. Error:", mean(abs(v$resid))))
     
     ggplot(data=v, aes(x=predict, y=resid)) +
       geom_point(size=1,
                  shape=16)+
       theme_bw()+
       xlab("Predicted")+
-      ylab("Residuals")-> residuals
+      ylab("Residuals")+
+      ggtitle("Predicted versus Residuals") -> residuals
     ggplot(data=v, aes(x=predict, y=get(class.attr))) +
       geom_point(size=1,
                  shape=16)+
       theme_bw()+
       xlab("Predicted")+
-      ylab("Actual") -> predictions
-    if (length(x) != 3) {
-      print((predictions + ggtitle("Predicted versus Actual",
-           subtitle=subsetName)) + (residuals + ggtitle("Predicted versus Residuals",
-           subtitle=subsetName)))
-    } else {
-      residPlots <- append(residPlots, list(residuals + ggtitle("", subtitle=subsetName)))
-      predPlots <- append(predPlots, list(predictions + ggtitle("", subtitle=subsetName)))
-    }
+      ylab("Actual")+
+      ggtitle("Predicted versus Actual") -> predictions
+    print(predictions + residuals)
     i <- i + 1
   }
-  if (length(x) == 3) {
-    topPatch <- (residPlots[[1]] + residPlots[[2]] + residPlots[[3]])
-    bottomPatch <- (predPlots[[1]] + predPlots[[2]] + predPlots[[3]])
-    combine <- wrap_elements(topPatch + plot_annotation(title = "Predicted verses Residuals")) / 
-                wrap_elements(bottomPatch + plot_annotation(title = "Predicted verses Actual"))
-    print(combine)
-  }
-  
 }
 @
 
 \subsection{First Order Model}
 Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This predictor was calculated off of BirthWeightGm, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model. 
 
-Fitting a first-order linear model with all our acceptable predictor variables, we calculated the following estimated linear regression equation: \\
+First, we fit a first-order linear model with all of our predictors. The estimated linear regression equation is \\
 
-\begin{align*} \hat{y} &= -964.29 - 704.71\cdot \text{I}(\text{Plural} = 2) - 932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Preemie} = \text{Yes}) \end{align*}
-
+\begin{align*} \hat{y} &= -964.29 + -704.71\cdot \text{I}(\text{Plural} = 2) + -932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Premie} = \text{Yes}) \end{align*}
   
-<<eval=FALSE>>=
+<<>>=
 #first model = model.1
 lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
-     Marital + Gained + Smoke + Preemie, births) -> model.1
+     Marital + Gained + Smoke + Low + Premie, births) -> model.1
 
-modelSummary(model.1, plot=FALSE)
-@
-  
-<<results=FALSE, eval=FALSE>>=
-xtable(model.1, caption="Predictor Statistics and Significance for First-Order Model", label="First.Order.Table")
+modelSummary(model.1, coef = TRUE)
+xtable(model.1)
 @
 
 \begin{table}[ht]
 \centering
-\begin{tabular}{lrrrrrr}
+\begin{tabular}{lrrrrr}
   \hline
-$R^2$ & $R^2_{adj}$ & RSE & AIC & BIC & RD\\ 
+R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
   \hline
-   0.4570 & 0.4512 & 464.6719 & 21322.7497 & 21412.0105 & 0.0472 \\ 
+    0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
    \hline
 \end{tabular}
 \caption{Summary of first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
-\label{first.order.summary}
 \end{table}
 
-As Table \ref{First.Order.Table} indicates, Plural2 (Twins), Plural3 (Triplets), Sex = Male, MomAge, Weeks, RaceMom = Filipino, Gained, Smoke, and Preemie are all significant predictors. Table \ref{first.order.summary} demonstrates that the $R^2$ is fairly high, meaning the model is quite predictive; additionally, the quantile departure value is very close to 0, meaning it does well to satisfy the requirements for equal distribution of residuals. This is further emphasized in Figure \ref{resid.plots.un}. However, AIC and BIC values are also high, meaning that the number of predictor variables is not predictive enough to justify the variety of parameters we are using.
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Variable & Estimate & Std. Error & t-value & Pr($>$$|$t$|$) & Significance\\ 
+  \hline
+(Intercept) & 312.6680 & 269.4492 & 1.16 & 0.2461 & Not Significant\\ 
+  Plural2 & -334.0925 & 70.4623 & -4.74 & 0.0000 & Significant\\ 
+  Plural3 & -573.8399 & 211.1767 & -2.72 & 0.0067 & Significant \\ 
+  SexMale & 95.8608 & 22.0006 & 4.36 & 0.0000 & Significant\\ 
+  MomAge & 8.7901 & 2.0617 & 4.26 & 0.0000 & Significant\\ 
+  Weeks & 68.8625 & 6.2079 & 11.09 & 0.0000 & Significant\\ 
+  RaceMomBlack & -60.5404 & 91.0486 & -0.66 & 0.5062 & Not Significant\\ 
+  RaceMomChinese & 50.7163 & 305.0140 & 0.17 & 0.8680 & Not Significant\\ 
+  RaceMomFilipino & -841.5637 & 421.9630 & -1.99 & 0.0463 & Significant\\ 
+  RaceMomJapanese & 20.4137 & 94.6150 & 0.22 & 0.8292 & Not Significant\\ 
+  RaceMomOther Asian / PI & -59.0918 & 124.8994 & -0.47 & 0.6362 & Not Significant\\ 
+  RaceMomWhite & 16.8804 & 89.7516 & 0.19 & 0.8508 & Not Significant\\ 
+  MaritalUnmarried & -47.2980 & 28.4738 & -1.66 & 0.0969 & Not Significant\\ 
+  Gained & 6.0337 & 0.8118 & 7.43 & 0.0000 & Significant\\ 
+  SmokeYes & -161.2044 & 32.5008 & -4.96 & 0.0000 & Significant\\ 
+  Low & -972.7726 & 49.7945 & -19.54 & 0.0000 & Significant\\ 
+  PremieYes & -44.0616 & 48.1097 & -0.92 & 0.3599 & Not Significant\\ 
+   \hline
+\end{tabular}
+\label{Predictor Statistics and Significance}
+\end{table}
 
-<<eval=FALSE>>=
-# Log of Weight
-lm(WeightGmLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.log
+Plural2, Plural3, SexMale, MomAge, Weeks, RaceMomFilipino, Gained, SmokeYes, PremieYes and Low are all significant predictors. Table 2 demonstrates that the R-squared is low and that most of the variability in ... cannot be explained by this model. 
 
-# Square Root of Weight
-lm(WeightGmSqrt ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.sqrt
-
-# Squared of Weight
-lm(WeightGmS ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.s
-
-# Square of the Log of Weight
-lm(WeightGmSLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.slog
-
-# Log of the Log of Weight
-lm(WeightGmLogLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.loglog
-
-# Log of the Square Root of Weight
-lm(WeightGmLogSqr ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.logsqr
-
-# Square Root of the Log of Weight
-lm(WeightGmSqrtLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.sqrtlog
-
-# Inverse of the Weight
-lm(WeightGmInverse ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.inverse
-@
-
-Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to see if any of them improved our model performance statistics or residual distributions. The model statistics for each transformation are listed in Table \ref{tab.com.transform}. 
+Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to improve residual distribution. The model statistics for each transformation are listed in the table below. 
 
 \begin{table}[ht]
 \centering
 \begin{tabular}{lrrrrrr}
   \hline
-  Transformation & $R^2$ & $R^2_{adj}$ & RSE & AIC & BIC & QD\\ 
+  Transformation & R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
   \hline
-   No Transformation & 0.4570 & 0.4512 & 464.7 & 21322 & 21412 & 0.0472 \\ 
-   $log$ of Weight & 0.5243 & 0.5192 & 0.1756 & -885.3 & -796 & 0.1573\\ 
-   Square Root of Weight & 0.4994 & 0.4940 & 4.3160 & 8137 & 8227 & 0.0787 \\
-   Weight Squared & 0.3699 & 0.3631 & $3.04 * 10^6$ & 46086 & 46175 & 0.0974 \\
-   $log$ of Weight Squared & 0.5208 & 0.5156 & 2.7 & 6812 & 6901 & 0.1340\\
-   $log$ of the $log$ of Weight & 0.5249 & 0.5198 & 0.0231 & -6597 & -6508 & 0.1824 \\
-   $log$ of the Square Root of Weight & 0.5243 & 0.5192 & 0.3512 & 1068 & 1157 & 0.1573\\
-   Square Root of the $log$ of Weight & 0.5250 & 0.5199 & 0.0318 & -5699 & -5610 & 0.1695\\
-   Inverse of the Weight & 0.4507 & 0.4447 & 0.0001 & -21462 & -21373 & 0.3578 \\
+   First-order Model & 0.5739 & 0.5690 & 411.8022 & 20983.3562 & 21077.8676 \\ 
+   Log of Weight & 0.5243 & 0.5192 & 0.1756 & -885.2705 & -796.0097\\ 
+   Square Root of Weight & 0.4994 & 0.4940 & 4.3160 & 8137.3786 & 8226.6394\\
+   Weight Squared & 0.3699 & 0.3631 & 3044641.3454 & 46086.0996 & 46175.3604\\
+   Log of Weight Squared & 0.5208 & 0.5156 & 2.6968 & 6812.1540 & 6901.4149\\
+   Log of the Log of Weight & 0.5249 & 0.5198 & 0.0231 & -6597.7982 & -6508.5374\\
+   Log of the Square Root of Weight & 0.5243 & 0.5192 & 0.3512 & 1068.0181 & 1157.2789\\
+   Square Root of the Log of Weight & 0.5250 & 0.5199 & 0.0318 & -5699.0284 & -5609.7676\\
+   Inverse of the Weight & 0.5250 & 0.5199 & 0.0318 & -5699.0284 & -5609.7676\\
    \hline
 \end{tabular}
 \caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
-\label{tab.comp.transform}
+\end{table}
+
+<<>>=
+# Log of Weight
+lm(WeightGmLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.log
+
+# Square Root of Weight
+lm(WeightGmSqrt ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.sqrt
+
+# Squared of Weight
+lm(WeightGmS ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.s
+
+# Square of the Log of Weight
+lm(WeightGmSLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.slog
+
+# Log of the Log of Weight
+lm(WeightGmLogLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.loglog
+
+# Log of the Square Root of Weight
+lm(WeightGmLogSqr ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.logsqr
+
+# Square Root of the Log of Weight
+lm(WeightGmSqrtLog ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.sqrtlog
+
+# Inverse of the Weight
+lm(WeightGmInverse ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.inverse
+@
+
+At this point, we have two potential "best models": the un-transformed weight, which
+better satisfies the assumptions behind linear regression modeling, namely the equal
+distribution of residuals. We also have the log weight model, which has higher r-squared values and lower sigma, AIC, and BIC values than most other models, meaning it is more accurate. This accuracy is, however, gained only at the expense of making residuals less equally distributed, and thus satisfies the assumptions necessary to do things like conduct statistical inference on parameters. Thus, we will be proceeding with two models, the assumptions model and the accuracy model, where one will seek to minimize departure from assumptions and the other will seek to maximize accuracy. Assumption models will use the scaled and centered gram weight as their target, while accuracy models will use the scaled and centered log of gram weight.
+
+Below is our current First-Order Model with all appropriate transformations, and numeric attributes scaled and centered.
+
+\begin{align*} 
+\hat{y} &= 0.0703 -1.1235\cdot \text{Twin} -1.4860\cdot \text{Triplet} + 0.1497\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 0.1058\cdot \text{MomAgeSC} + 0.4209\cdot \text{WeeksSC} \\ &\quad -0.1226\cdot \text{I}(\text{RaceMom} = \text{Black}) + 0.1296\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -1.3717\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 0.0463\cdot \text{I}(\text{RaceMom} = \text{Japanese}) \\ &\quad -0.0932\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) + 0.0491\cdot \text{I}(\text{RaceMom} = \text{White}) \\ &\quad -0.0766\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 0.1740\cdot \text{GainedSC} \\ &\quad -0.3244\cdot \text{I}(\text{Smoke} = \text{Yes}) -0.3469\cdot \text{I}(\text{Premie} = \text{Yes}) 
+\end{align*}
+
+<<>>=
+#First-Order Model with All Appropriate Transformations, and Numeric Attributes Scaled & Centered
+lm(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.2.assu
+
+xtable(summary(model.2.assu)$coefficients)
+@
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrrr}
+  \hline
+R-Squared & Adjusted R-Squared & RSE & AIC & BIC\\ 
+  \hline
+    0.4570 & 0.4512 & 0.7407 & 3170.9990 & 3260.2598 \\ 
+   \hline
+\end{tabular}
+\caption{Summary of first order regression model with transformations R-squared, Adj R-squared, RSE, AIC, and BIC.}
+\end{table}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Variable & Estimate & Std. Error & t-value & Pr($>$$|$t$|$) & Significance\\ 
+  \hline
+(Intercept) & 0.07 & 0.16 & 0.43 & 0.67 & Not Significant\\ 
+  Plural2 & -1.12 & 0.12 & -9.20 & 0.00 & Significant\\ 
+  Plural3 & -1.49 & 0.38 & -3.93 & 0.00 & Significant\\ 
+  SexMale & 0.15 & 0.04 & 3.78 & 0.00 & Significant\\ 
+  MomAgeSC & 0.11 & 0.02 & 4.68 & 0.00 & Significant\\ 
+  WeeksSC & 0.42 & 0.03 & 14.38 & 0.00 & Significant\\ 
+  RaceMomBlack & -0.12 & 0.16 & -0.75 & 0.45 & Not Significant\\ 
+  RaceMomChinese & 0.13 & 0.55 & 0.24 & 0.81 & Not Significant\\ 
+  RaceMomFilipino & -1.37 & 0.76 & -1.81 & 0.07 & Significant\\ 
+  RaceMomJapanese & 0.05 & 0.17 & 0.27 & 0.79 & Not Significant\\ 
+  RaceMomOther Asian / PI & -0.09 & 0.22 & -0.41 & 0.68 & Not Significant\\ 
+  RaceMomWhite & 0.05 & 0.16 & 0.30 & 0.76 & Not Significant\\ 
+  MaritalUnmarried & -0.08 & 0.05 & -1.50 & 0.13 & Not Significant\\ 
+  GainedSC & 0.17 & 0.02 & 8.65 & 0.00 & Significant\\ 
+  SmokeYes & -0.32 & 0.06 & -5.56 & 0.00 & Significant\\ 
+  PremieYes & -0.35 & 0.09 & -4.08 & 0.00 & Significant\\ 
+   \hline
+\end{tabular}
+\label{Predictor Statistics for model.2 and Significance}
+\end{table}
+
+In our new model, Plural2, Plural3, SexMale, MomAgeSC, WeeksSC, RaceMomFilipino, Gained, SmokeYes, PremieYes are all significant predictors. All of the significant predictors did not change from our previous model. Notice that MomAge and Weeks were both replaced by their scaled and centered values, which is also why Table 2 demonstrates that the R-squared remained the same from the previous model.
+
+After obtaining our second model, we were curious as to how some of the predictors influenced the data set. Preemie means that the baby was born weeks before the predicted due date, and its commonly known that preemies have low birth weights. 
+
+The code below tests the model on the data subset that only includes preemies, and the data subset that excludes preemies. We then ran the model on both and compared the results. 
+
+<<>>=
+predictForSubsets(model.2.assu, "WeightGmSC", 
+                  births, 
+                  births %>% filter(Premie=="Yes"),
+                  births %>% filter(Premie=="No"))
+
+lm(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+     Marital + GainedSC + Smoke + Premie, births) -> model.2.accur
+
+modelSummary(model.2.accur)
+predictForSubsets(model.2.accur, "WeightLogSC", 
+                  births,
+                  births %>% filter(Premie=="Yes"),
+                  births %>% filter(Premie=="No"))
+@
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrr}
+  \hline
+  Subset & R-Squared & Mean Absolute Error\\ 
+  \hline
+   Births & 0.4570 & 0.5714 \\ 
+   Preemies & 0.5510 & 0.7090 \\ 
+   Not Preemies & 0.1755 & 0.5511 \\
+   \hline
+\end{tabular}
+\caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
 \end{table}
 
 
-
-Based on Table \ref{tab.comp.transform}, we have several potential transformation options. First is the un-transformed weight, which better satisfies the assumptions behind linear regression modeling, namely the equal
-distribution of residuals. On the other hand, we have the log weight model, which has higher $R^2$ values and lower RMSE, AIC, and BIC values than most other models, meaning it is more accurate. This accuracy is, however, gained only at the expense of making residuals less equally distributed. As shown by the QD values, and emphasized by the comparisons between Figure \ref{resid.plots.un} and \ref{resid.plots.log}, the $log$ transformation results in a quantile departure nearly four times the size of the non-transformed. The residual disparities also seem to come much more from the lower end of the birth weights in the logarithmic model. Because of this, it does not seem to as strongly satisfy the assumptions necessary to do things like conduct statistical inference on parameters. Thus, we will be proceeding with two models, the assumptions model and the accuracy model, where one will seek to minimize departure from assumptions and the other will seek to maximize accuracy. Assumption models will use the scaled and centered gram weight as their target, while accuracy models will use the scaled and centered $log$ of gram weight.\\
-
-Below are our two first-order models, one with no transformations and the other with the $log$ of the weight taken. Both have all numeric variables, including the response variables, scaled and centered.
-
-<<resids, eval=FALSE, echo=TRUE>>=
-#First-Order Model with All Appropriate Transformations, and Numeric Attributes Scaled & Centered
-lm(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.2.assu
-
-modelSummary(model.2.assu, coef=F, stat=F)
-@
-
-<<resids.log, eval=FALSE, echo=TRUE>>=
-lm(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-     Marital + GainedSC + Smoke + Preemie, births) -> model.2.accur
-
-modelSummary(model.2.accur, coef=F, stat=F)
-@
-
-\begin{figure}
-<<eval=FALSE>>=
-<<resids>>
-@
-\caption{Residual Plots of Untransformed Model.} 
-\label{resid.plots.un}
-\end{figure}
-
-\begin{figure}
-<<eval=FALSE>>=
-<<resids.log>>
-@
-\caption{Residual Plots of Logarithmic Model.} 
-\label{resid.plots.log}
-\end{figure}
-
-\subsection{First Order Model Pruning}\label{fom.prune}
-
-Our next step was to reduce the number of variables in the two models to only those that had an affect. For both of our models, we ran AIC-based elimination, BIC-based elimination, and regression subset optimization techniques to determine which variables should be removed.
-
+Part 2: AIC/BIC Iteration 1
 <<>>=
+## Assumptions Model
+
 x <- model.matrix(model.2.assu)[,-1]
 
 y <- births$WeightGmSC
-
-xy <- as.data.frame(cbind(x,y))
-best.subsets.aic <- bestglm(xy, IC="AIC", TopModels = 5)
-best.model.aic <- best.subsets.aic$BestModel
-modelSummary(best.model.aic, plot=F)
-
-best.subsets.bic <- bestglm(xy, IC="BIC", TopModels = 5)
-best.model.bic <- best.subsets.bic$BestModel
-modelSummary(best.model.bic, plot=F)
-
-regsubsets.out <- regsubsets(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-                               Marital + GainedSC + Smoke + Preemie,
-                             data=births, nbest = 1, nvmax=15)
-
-fit.stats <- data.frame(num.variables=1:15,
-                        adjr2 = summary(regsubsets.out)$adjr2,
-                        bic=summary(regsubsets.out)$bic)
-
-cbind(fit.stats, as.data.frame(summary(regsubsets.out)$outmat))
-
-@
-
-For the assumption model, we found that the AIC-based technique, the BIC-based technique, and the regression subset technique all agreed that all racial attributes except for Black and Filipino should be removed. BIC also recommended removing the Marital measure and the Filipino measure. We decided to remove all of the variables recommended for removal by the algorithms; the decision to exclude Filipino was fairly easy, as only a single value in our dataset was classified as Filipino. We also were confident in removing Marital because the effect size was extremely low and the significance levels quite high in the AIC-based model that had included it. We thus ended up with the following model: 
-
-<<result=FALSE, eval=FALSE>>=
-model.3.assu <- lm(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie,
-                    births)
-xtable(model.3.assu, caption="Predictor Statistics and Significance for Pruned First-Order Non-Transformed Model", label="pruned.first.model.un")
-@
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 0.0948 & 0.0337 & 2.81 & 0.0050 \\ 
-  Twin & -1.1201 & 0.1220 & -9.18 & 0.0000 \\ 
-  Triplet & -1.4721 & 0.3785 & -3.89 & 0.0001 \\ 
-  Male & 0.1522 & 0.0396 & 3.85 & 0.0001 \\ 
-  MomAge (SC) & 0.1186 & 0.0204 & 5.81 & 0.0000 \\ 
-  Weeks (SC) & 0.4187 & 0.0292 & 14.35 & 0.0000 \\ 
-  Black & -0.1917 & 0.0481 & -3.98 & 0.0001 \\ 
-  Gained (SC) & 0.1738 & 0.0200 & 8.70 & 0.0000 \\ 
-  Smoke & -0.3343 & 0.0564 & -5.92 & 0.0000 \\ 
-  Preemie & -0.3577 & 0.0848 & -4.22 & 0.0000 \\ 
-   \hline
-\end{tabular}
-\caption{Predictor Statistics and Significance for Pruned First-Order Non-Transformed Model} 
-\label{pruned.first.model.un}
-\end{table}
-
-\begin{figure}
-<<eval=FALSE>>=
-modelSummary(model.3.assu, coef=F)
-@
-\caption{"Residual Plots of Pruned Non-Transformed Model"}
-\ref{prune.resid}
-\end{figure}
-
-In our new model, according to Table \ref{pruned.first.model.un}, all remaining variables have coefficients with $p$-values $< 0.05$, indicating that the values for $\beta_i$ all fall either above or below 0. $R^2$ sees a slight decrease, but $R^2_{adj}$ is now closer to $R^2$, as $R^2 - R^2_{adj}$ goes from 0.0058 to 0.0035. Further, according to Figure \ref{prune.resid}, our residuals have remained roughly constant, compared to \ref{resid.plots.un}, and our quantile departure is approximately the same.
-
-<<>>=
-x <- model.matrix(model.2.accur)[,-1]
-
-y <- births$WeightLogSC
 
 xy <- as.data.frame(cbind(x,y))
 best.subsets.aic <- bestglm(xy, IC="AIC", TopModels = 5)
@@ -661,442 +648,54 @@ best.subsets.bic <- bestglm(xy, IC="BIC", TopModels = 5)
 best.model.bic <- best.subsets.bic$BestModel
 modelSummary(best.model.bic)
 
-regsubsets.out <- regsubsets(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
-                               Marital + GainedSC + Smoke + Preemie,
+regsubsets.out <- regsubsets(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
+                               Marital + GainedSC + Smoke + Premie,
                              data=births, nbest = 1, nvmax=15)
+
+as.data.frame(summary(regsubsets.out)$outmat)
 
 fit.stats <- data.frame(num.variables=1:15,
                         adjr2 = summary(regsubsets.out)$adjr2,
                         bic=summary(regsubsets.out)$bic)
+fit.stats
 
-cbind(fit.stats, as.data.frame(summary(regsubsets.out)$outmat))
+## Of the models, BIC suggests removing Marital and all races
+## except Black. AIC / radj2 would retain Filipino and Marital.
+## Since there is only a single Philipino instance, we remove Filipino,
+## as well as marital since the significance is so low.
 @
 
-Just as with the model for the non-transformed weights, the same variables - all levels of race except for Black, as well as marital status - were recommended to be removed in the model with the $log$ transformation of the weights. Having done so, in Table \ref{pruned.first.model.log}, we found that all remaining variables were significant with $p$-values $<0.05$. 
-
-<<results=FALSE, eval=FALSE>>=
-model.3.accur <- lm(WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie, births)
-
-xtable(model.3.accur, caption="Predictor Statistics and Significance for Pruned First-Order Log-Transformed Model", label="pruned.first.model.log")
-@
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 0.0671 & 0.0315 & 2.13 & 0.0336 \\ 
-  Twin & -1.0119 & 0.1141 & -8.87 & 0.0000 \\ 
-  Triplet & -1.5454 & 0.3542 & -4.36 & 0.0000 \\ 
-  Male & 0.1100 & 0.0370 & 2.97 & 0.0030 \\ 
-  MomAge (SC) & 0.1120 & 0.0191 & 5.86 & 0.0000 \\ 
-  Weeks (SC) & 0.5553 & 0.0273 & 20.33 & 0.0000 \\ 
-  Black & -0.1582 & 0.0450 & -3.51 & 0.0005 \\ 
-  Gained (SC) & 0.1523 & 0.0187 & 8.15 & 0.0000 \\ 
-  Smoke & -0.2547 & 0.0528 & -4.82 & 0.0000 \\ 
-  Preemie & -0.1602 & 0.0793 & -2.02 & 0.0436 \\ 
-   \hline
-\end{tabular}
-\caption{Predictor Statistics and Significance for Pruned First-Order Log-Transformed Model} 
-\label{pruned.first.model.log}
-\end{table}
-
-<<eval=FALSE>>=
-modelSummary(model.3.assu, coef=F, plot=F)
-
+<<mod.accur.prelim.full>>=
+mod.accur.prelim.full <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + Black:Smoke + Black:Premie, data = births)
 @
 
-Just as before, our $R^2$ values decreased as we removed values, but our $R^2_{adj}$ actually remained exactly the same, going from 0.5191 to 0.5192. \\
-
-Using these two models, we decided to conduct run cross validation tests to make sure that the data was not simply being overfit, and that our $R^2$ and MAE values were accurate to the data as a whole. We ran cross validation on both models, using both k-fold cross validation and leave-one-out cross validation. 
-
-<<eval=FALSE>>=
-
-specs <- trainControl(method="LOOCV")
-model.cval.LOO.accur <- train(WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-model.cval.LOO.accur$results[["Method"]] <- "LOOCV"
-
-specs <- trainControl(method="CV", number=10)
-
-model.cval.cv.accur <- train(WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-model.cval.cv.accur$results[["Method"]] <- "K-Fold"
-
-rbind(model.cval.LOO.accur$results, 
-      model.cval.cv.accur$results %>% select(intercept, RMSE, Rsquared, MAE, Method)) %>% 
-  select(Method, RMSE, Rsquared, MAE) %>% 
-  xtable(caption="Comparison of Cross-Validation Techniques on Logarithmic Model", label="cross.val.log")
-@
-\begin{table}[ht]
-\centering
-\begin{tabular}{lrrr}
-  \hline
-  Method & RMSE & $R^2$ & MAE \\ 
-  \hline
-  None & 0.69 & 0.52 & 0.49 \\
-  LOOCV & 0.70 & 0.51 & 0.50 \\ 
-  K-Fold & 0.69 & 0.49 & 0.50 \\ 
-   \hline
-\end{tabular}
-\caption{Comparison of Cross-Validation Techniques on Logarithmic Model} 
-\label{cross.val.log}
-\end{table}
-
-<<>>=
-specs <- trainControl(method="LOOCV")
-model.cval.LOO.assu <- train(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-
-model.cval.LOO.assu$results[["Name"]] <- "LOOCV"
-
-
-specs <- trainControl(method="CV", number=10)
-
-model.cval.cv.assu <- train(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
-                      GainedSC + Smoke + Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-model.cval.cv.assu$results[["Name"]] <- "K-Fold"
-
-rbind(model.cval.LOO.assu$results, 
-      model.cval.cv.assu$results %>% select(intercept, RMSE, Rsquared, MAE, Name)) %>%
-    select(RMSE, Rsquared, MAE, Name) %>% 
-  xtable(caption="Comparison of Cross-Validation Techniques", label="cross.val.un")
-
+<<model.3.assu>>=
+model.3.assu <- lm(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
+                      GainedSC + Smoke + Premie,
+                    births)
 @
 
-\begin{table}[ht]
-\centering
-\begin{tabular}{lrrr}
-  \hline
- Method & RMSE & $R^2$ & MAE \\ 
-  \hline
-  Orig. & 0.74 & 0.45 & 0.57 \\
-LOOCV & 0.74 & 0.45 & 0.58 \\ 
-  K-Fold & 0.74 & 0.44 & 0.58 \\ 
-   \hline
-\end{tabular}
-\caption{Comparison of Cross-Validation Techniques} 
-\label{cross.val.un}
-\end{table}
+\section{Part 5: Final Models and Conclusions.}
+The following are the descriptions and linear regressions of our two final models:
+\begin{enumerate}
+\item \textbf{mod.accur.prelim.full}: 
 
-In both Table \ref{cross.val.log} and \ref{cross.val.un}, it is apparent that the cross validation yields values of RMSE, $R^2$, and MAE that are directly in line with the values we calculate using the full training data. \\
 
-After obtaining our new model, we were curious as to how some of the predictors influenced the data set. Premature births means that the baby was born weeks before the predicted due date, and its commonly known that "Preemies" have low birth weights. They are also some of the more important subject to have accurate weight predictions of, because of their often-delicate health condition and the importance that greater levels of development can bring with it. We calculated the residuals of our models for the entire dataset, just the premature births, and just the non-premature births, and created plots comparing the distribution of residuals for each of the subsets of the data. 
+\item \textbf{model.3.assu}:
 
-\begin{figure}
-<<eval=FALSE>>=
-predictForSubsets(model.3.assu, "WeightGmSC", 
-                  births, 
-                  births %>% filter(Preemie=="Yes"),
-                  births %>% filter(Preemie=="No"),
-                  names=c("Full", "Prememie", "Non-Preemie"))
-@
-\caption{Comparison of Residual Distributions Between Datasets for Untransformed Model}
-\label{resid.3.un}
-\end{figure}
+\begin{align*} 
+\hat{y} &= 0.0948 + -1.1201\cdot I(Twin = \text{TRUE}) + -1.4721\cdot I(Triplet = \text{TRUE}) + 0.1522\cdot I(Sex = \text{Male}) \newline &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot I(Black = \text{TRUE}) \newline &\quad + 0.1738\cdot \text{GainedSC} - 0.3343\cdot I(Smoke = \text{Yes}) - 0.3577\cdot I(Preemie = \text{Yes}) 
+\end{align*}
+\end{enumerate}
 
-\begin{figure}
-<<eval=FALSE>>=
-predictForSubsets(model.3.accur, "WeightLogSC", 
-                  births,
-                  births %>% filter(Preemie=="Yes"),
-                  births %>% filter(Preemie=="No"),
-                  names=c("Full", "Prememie", "Non-Preemie"))
-@
-\caption{Comparison of Residual Distributions Between Subsets for Logarithmic Model}
-\label{resid.3.log}
-\end{figure}
-
-As Figures \ref{resid.3.un} and \ref{resid.3.log} demonstrate, both model tend to have higher residual departures for premature births than they do for the dataset as a whole or for the subset of non-premature births. This is also reflected in the MAE values, as seen in Table \ref{subset.comp}, where the premature birth subset is always lower than the non-premature birth or the full dataset. However, Table \ref{subset.comp} also shows that premature births also have a much higher correlation with the predicted values from the model, meaning that in some sense they are both more predictive of the general trends in premature birth weights than of non-premature birth weights. Further, the logarithmic model is much better at predicting births that are at the higher ends of the weight range than at the lower end of the range, while the non-transformed model is more consistent across weight ranges. 
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{lrrrr}
-  \hline
-  &  \multicolumn{2}{c}{$R^2$} & \multicolumn{2}{c}{MAE}\\
-  Subset & Orig. & $log$ & Orig. & $log$\\ 
-  \hline
-   Births & 0.4543 & 0.5221 & 0.5732 & 0.4956 \\ 
-   Preemies & 0.5521 &  0.6559 & 0.7119 &  0.8867 \\ 
-   Not Preemies & 0.1706 & 0.1490 & 0.5528& 0.4380 \\
-   \hline
-\end{tabular}
-\caption{Summary of Comparison Between Subset Evalution of Nontransformed and Logarithmic Models}
-\label{subset.comp}
-\end{table}
-
-\subsection{Interaction Model}
-
-Our next goal was to see if we could improve accuracy by fitting a full interaction model. Since the assumptions model is intended to be used for interpreting the regression term coefficients, we decided that we would only fit interaction for the accuracy-optimization model. Fitting the full interaction model yielded the following: 
-
-<<results=FALSE, eval=FALSE>>=
-model.interact.accur <- lm(WeightLogSC ~ (Plural + Sex + MomAgeSC + WeeksSC + Black +
-                             GainedSC + Smoke + Preemie)^2, births)
-
-xtable(model.interact.accur, caption="Predictor Statistics and Significance for Log-Transformed Interaction Model", label="interact.model.log")
-@
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 0.1686 & 0.0324 & 5.21 & 0.0000 \\ 
-  Twin & -1.2867 & 0.2003 & -6.42 & 0.0000 \\ 
-  Triplet & -1.6956 & 1.6094 & -1.05 & 0.2923 \\ 
-  Male & 0.1304 & 0.0432 & 3.02 & 0.0026 \\ 
-  MomAge (SC) & 0.0955 & 0.0278 & 3.43 & 0.0006 \\ 
-  Weeks (SC) & 0.1804 & 0.0410 & 4.40 & 0.0000 \\ 
-  Black & -0.1775 & 0.0632 & -2.81 & 0.0050 \\ 
-  Gained (SC) & 0.1436 & 0.0282 & 5.08 & 0.0000 \\ 
-  Smoke & -0.2597 & 0.0780 & -3.33 & 0.0009 \\ 
-  Preemie & 0.8388 & 0.1400 & 5.99 & 0.0000 \\ 
-  Twin:Male & 0.1786 & 0.2021 & 0.88 & 0.3770 \\ 
-  Triplet:Male & 0.5711 & 0.8682 & 0.66 & 0.5108 \\ 
-  Twin:MomAge (SC) & -0.0038 & 0.1098 & -0.03 & 0.9725 \\ 
-  Triplet:MomAge (SC) & 0.1514 & 1.0843 & 0.14 & 0.8890 \\ 
-  Twin:Weeks (SC) & -0.2927 & 0.1009 & -2.90 & 0.0038 \\ 
-  Triplet:Weeks (SC) & -0.2034 & 0.2702 & -0.75 & 0.4518 \\ 
-  Twin:Black & -0.3361 & 0.3158 & -1.06 & 0.2873 \\ 
-  Twin:Gained (SC) & -0.0882 & 0.0954 & -0.92 & 0.3554 \\ 
-  Twin:Smoke & 0.3392 & 0.5266 & 0.64 & 0.5196 \\ 
-  Twin:Preemie & 0.0904 & 0.2789 & 0.32 & 0.7458 \\ 
-  Male:MomAge (SC) & 0.0140 & 0.0330 & 0.42 & 0.6723 \\ 
-  Male:Weeks (SC) & -0.0221 & 0.0497 & -0.44 & 0.6568 \\ 
-  Male:Black & -0.0883 & 0.0778 & -1.13 & 0.2566 \\ 
-  Male:Gained (SC) & 0.0139 & 0.0326 & 0.43 & 0.6699 \\ 
-  Male:Smoke & -0.0280 & 0.0927 & -0.30 & 0.7629 \\ 
-  Male:Preemie & -0.0164 & 0.1385 & -0.12 & 0.9056 \\ 
-  MomAge (SC):Weeks (SC) & 0.0003 & 0.0256 & 0.01 & 0.9905 \\ 
-  MomAge (SC):Black & -0.0342 & 0.0399 & -0.86 & 0.3916 \\ 
-  MomAge (SC):Gained (SC) & -0.0041 & 0.0174 & -0.23 & 0.8157 \\ 
-  MomAge (SC):Smoke & -0.1053 & 0.0474 & -2.22 & 0.0265 \\ 
-  MomAge (SC):Preemie & -0.0329 & 0.0697 & -0.47 & 0.6371 \\ 
-  Weeks (SC):Black & 0.1516 & 0.0545 & 2.78 & 0.0055 \\ 
-  Weeks (SC):Gained (SC) & -0.0641 & 0.0250 & -2.56 & 0.0105 \\ 
-  Weeks (SC):Smoke & -0.1369 & 0.0627 & -2.18 & 0.0293 \\ 
-  Weeks (SC):Preemie & 1.1095 & 0.0663 & 16.74 & 0.0000 \\ 
-  Black:Gained (SC) & -0.0330 & 0.0372 & -0.89 & 0.3759 \\ 
-  Black:Smoke & 0.1584 & 0.1152 & 1.37 & 0.1694 \\ 
-  Black:Preemie & 0.5377 & 0.1605 & 3.35 & 0.0008 \\ 
-  Gained (SC):Smoke & -0.0404 & 0.0433 & -0.93 & 0.3507 \\ 
-  Gained (SC):Preemie & -0.0642 & 0.0761 & -0.84 & 0.3992 \\ 
-  Smoke:Preemie & 0.0710 & 0.1898 & 0.37 & 0.7083 \\ 
-   \hline
-\end{tabular}
-\caption{Predictor Statistics and Significance for Log-Transformed Interaction Model} 
-\label{interact.model.log}
-\end{table}
-<<eval=FALSE>>=
-modelSummary(model.interact.accur, coef=F, plot=F)
-@
-
-The accuracy of this model is much improved; our $R^2$ value is nearly 30\% higher than it was previously, and our RMSE, AIC and BIC values each have seen modest improvements. However, there are far too many terms, leading to a much lower proportion of significant estimations for the linear regression coefficients, and pruning is necessary to reduce the size of the model to only the most important terms.
-
-\subsection{Interaction Model Pruning}
-
-To prune our interaction model, we used the step-wise reduction method to reduce terms on the basis of AIC values. Doing so yields the following model:
-
-<<eval=FALSE>>=
-step(model.interact.accur, direction="both")
-@
-<<results=FALSE>>=
-step.reduced.accur <- lm(formula = WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + 
-                  Black + GainedSC + Smoke + Preemie + Twin:WeeksSC + Triplet:WeeksSC + MomAgeSC:Smoke + 
-                  WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Preemie + 
-                  Black:Smoke + Black:Preemie, data = births)
-xtable(step.reduced.accur, caption="Predictor Statistics and Significance for Log-Transformed Pruned Interaction Model", label="interact.model.log.prune")
-@
-\begin{table}[ht]
-\centering
-\begin{tabular}{rrrrr}
-  \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
-  \hline
-(Intercept) & 0.1813 & 0.0279 & 6.49 & 0.0000 \\ 
-  Twin & -1.2273 & 0.1369 & -8.97 & 0.0000 \\ 
-  Triplet & -1.0309 & 0.6270 & -1.64 & 0.1004 \\ 
-  Male & 0.1110 & 0.0316 & 3.51 & 0.0005 \\ 
-  MomAge (SC) & 0.0912 & 0.0178 & 5.14 & 0.0000 \\ 
-  Weeks (SC) & 0.1688 & 0.0321 & 5.26 & 0.0000 \\ 
-  Black & -0.2197 & 0.0471 & -4.66 & 0.0000 \\ 
-  Gained (SC) & 0.1250 & 0.0160 & 7.80 & 0.0000 \\ 
-  Smoke & -0.2696 & 0.0516 & -5.22 & 0.0000 \\ 
-  Preemie & 0.8473 & 0.1045 & 8.10 & 0.0000 \\ 
-  Twin:Weeks (SC) & -0.2970 & 0.0700 & -4.25 & 0.0000 \\ 
-  Triplet:Weeks (SC) & -0.0969 & 0.2116 & -0.46 & 0.6470 \\ 
-  MomAge (SC):Smoke & -0.1005 & 0.0466 & -2.16 & 0.0313 \\ 
-  Weeks (SC):Black & 0.1588 & 0.0521 & 3.05 & 0.0023 \\ 
-  Weeks (SC):Gained (SC) & -0.0422 & 0.0169 & -2.50 & 0.0127 \\ 
-  Weeks (SC):Smoke & -0.1502 & 0.0422 & -3.56 & 0.0004 \\ 
-  Weeks (SC):Preemie & 1.1080 & 0.0601 & 18.45 & 0.0000 \\ 
-  Black:Smoke & 0.1590 & 0.1121 & 1.42 & 0.1564 \\ 
-  Black:Preemie & 0.5283 & 0.1537 & 3.44 & 0.0006 \\ 
-   \hline
-\end{tabular}
-\caption{Predictor Statistics and Significance for Log-Transformed Pruned Interaction Model} 
-\label{interact.model.log.prune}
-\end{table}
-<<>>=
-modelSummary(step.reduced.accur, coef=F, plot=F)
-
-@
-
-This leaves us with a total of 18 regression attributes with associated estimated linear regression coefficients, of which all but 3 have significant $p$-values. 
-
-<<results=FALSE>>=
-specs <- trainControl(method="LOOCV")
-model.cval.LOO <- train( WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + 
-                  Black + GainedSC + Smoke + Preemie + Twin:WeeksSC + Triplet:WeeksSC + MomAgeSC:Smoke + 
-                  WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Preemie + 
-                  Black:Smoke + Black:Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-model.cval.LOO$results[["Method"]] <- "LOOCV"
-
-specs <- trainControl(method="CV", number=10)
-
-model.cval.cv <- train( WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + 
-                  Black + GainedSC + Smoke + Preemie + Twin:WeeksSC + Triplet:WeeksSC + MomAgeSC:Smoke + 
-                  WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Preemie + 
-                  Black:Smoke + Black:Preemie, data=births,
-                      method = "lm",
-                      trControl = specs,
-                      na.action = na.omit)
-model.cval.cv$results[["Method"]] <- "K-Fold"
-
-rbind(model.cval.LOO$results, 
-      model.cval.cv$results %>% select(intercept, RMSE, Rsquared, MAE, Method)) %>% 
-  select(Method, RMSE, Rsquared, MAE) %>% 
-  xtable(caption="Comparison of Cross-Validation Techniques on Logarithmic Model", label="cross.val.log")
-@
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{lrrr}
-  \hline
- Method & RMSE & $R^2$ & MAE \\ 
-  \hline
-  Orig. & 0.59 & 0.66 & 0.44 \\
-  LOOCV & 0.60 & 0.64 & 0.45 \\ 
-  K-Fold & 0.62 & 0.61 & 0.45 \\ 
-   \hline
-\end{tabular}
-\caption{Comparison of Cross-Validation Techniques on Logarithmic Model} 
-\label{cross.val.log}
-\end{table}
-
-After conducting k-fold and leave-one-out cross validation, we find that they are in general agreement with our calculations of RMSE, $R^2$, and MAE; the k-fold cross validation has a value of $R^2$ that is somewhat lower than the original calculation and the LOOCV value, but not by much, and at a level that is still much higher than our original model. \\
-
-Similar to our estimates with the earlier model, we wanted to see how the model performed on the three sections of the dataset, our full dataset, the premature births, and the non-premature births. 
-
-\begin{figure}
-<<eval=FALSE>>=
-predictForSubsets(step.reduced.accur, "WeightLogSC", 
-                  births,
-                  births %>% filter(Preemie=="Yes"),
-                  births %>% filter(Preemie=="No"),
-                  names=c("Full", "Prememie", "Non-Preemie"))
-@
-\caption{Comparison of Residual Distributions Between Subsets for Pruned Interaction Logarithmic Model}
-\label{resid.final}
-\end{figure}
-
-\begin{figure}
-<<>>=
-plotResiduals(step.reduced.accur)
-@
-\caption{Distribution of Residuals for Pruned Interaction Logarithmic Model}
-\label{resid.plots.final}
-\end{figure}
-
-As Figure \ref{resid.final} demonstrates when compared to Figure \ref{resid.3.log}, the residuals seem more evenly distributed. Premature births and birth weights around the lower end of the estimation tend to be overestimated, but predictions, especially around the main range of values, seems much more accurate, with the only notable area with large departures coming from reduction of mid-ranged values of the non-premature babies. The Residual-Density plot from Figure \ref{resid.plots.final} indicates that, if anything, residuals in the neighborhood of 0 are somewhat over-represented.
-
-\subsection{Variance Inflation Factor Assessment}
-
-Before finalizing our models, we checked to ensure that variance inflation did not play into the model's accurace using the VIF test. 
-
-<<results=FALSE>>=
-vif(model.3.assu) %>% as.data.frame() -> assu.vif
-vif(step.reduced.accur) %>% as.data.frame() -> accur.vif
-
-assu.vif %>% xtable(caption="VIF Values for Pruned Nontransformed Regression Model", 
-                    label="vif.val.assu")
-accur.vif %>%  xtable(caption="VIF Values for Pruned Logarithmic Interaction Regression Model", 
-                    label="vif.val.accur")
-@
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rr}
-  \hline
- & VIF \\ 
-  \hline
-Twin & 1.13 \\ 
-  Triplet & 1.04 \\ 
-  Sex & 1.00 \\ 
-  MomAge (SC) & 1.07 \\ 
-  Weeks (SC) & 2.11 \\ 
-  Black & 1.05 \\ 
-  Gained (SC) & 1.02 \\ 
-  Smoke & 1.02 \\ 
-  Preemie & 2.06 \\ 
-   \hline
-\end{tabular}
-\caption{VIF Values for Pruned Nontransformed Regression Model} 
-\label{vif.val.assu}
-\end{table}
-
-\begin{table}[ht]
-\centering
-\begin{tabular}{rr}
-  \hline
- & VIF \\ 
-  \hline
-Twin & 2.24 \\ 
-  Triplet & 4.50 \\ 
-  Sex & 1.01 \\ 
-  MomAge (SC) & 1.27 \\ 
-  Weeks (SC) & 4.02 \\ 
-  Black & 1.59 \\ 
-  Gained (SC) & 1.04 \\ 
-  Smoke & 1.34 \\ 
-  Preemie & 4.95 \\ 
-  Twin:Weeks (SC) & 2.98 \\ 
-  Triplet:Weeks (SC) & 4.64 \\ 
-  MomAge (SC) Smoke & 1.24 \\ 
-  Weeks (SC) Black & 3.51 \\ 
-  Weeks (SC) Gained (SC) & 1.30 \\ 
-  Weeks (SC) Smoke & 1.40 \\ 
-  Weeks (SC) Preemie & 7.91 \\ 
-  Black:Smoke & 1.44 \\ 
-  Black:Preemie & 3.64 \\ 
-   \hline
-\end{tabular}
-\caption{VIF Values for Pruned Logarithmic Interaction Regression Model} 
-\label{vif.val.accur}
-\end{table}
-
-In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are thus very acceptable; for Table \ref{vif.val.accur}, all but one value falls below 5, which is the highly-acceptable limit, and the last remaining value still falls below 10, which is the moderatly-acceptable limit. We are thus confident that variance inflation is not a particularly heavy factor in our model, and collinearity is not a significant problem.
-
-\section{Final Model(s) and Conclusions.}
-<<eval=FALSE>>=
-assessModel <- function(model, p) {
-  print(modelSummary(model, plots=F))
+\begin{enumerate}[a.]
+\item \textbf{Assess (and summarize) Model Diagnostics}\\
+We wrote a function to perform our assumptions on one of our final models, \textbf{mod.accur.prelim.full}, and assessed the results below.
+<<eval = FALSE>>=
+#Function to run model diagnostics
+assessModel <- function(model, p, class.attr) {
+  
+  print(modelSummary(model))
   cbind(vif(model), vif(model)[,3]^2)
   print(summary(model$residual))
   print(confint(model))
@@ -1113,7 +712,6 @@ assessModel <- function(model, p) {
   print(paste("Very High Lev.:", nrow(v.high.lev)))
   
   #Stud and Stand residual quantiles 
-
   new.resid <- model$model %>% mutate(stdres = rstandard(model),
                                       stures = rstudent(model))
   print("Standard Residual Quant.:")
@@ -1299,7 +897,16 @@ From our previous calculation of the high leverage values, we found 17 outlier i
 Our function ran Cook's test and found that there are no influential observations in the dataset. 
 
 \item \textbf{Summarize the findings of your final models}
+Finally, we will summarize the findings of our both of our models.
+
 \begin{enumerate}[i.]
+\item Model Output Summary 
+<<>>=
+summary(mod.accur.prelim.full)$adj.r.squared
+AIC(mod.accur.prelim.full)
+BIC(mod.accur.prelim.full)
+@
+
 \item Fitted Model
 <<>>=
 xtable(round(summary(mod.accur.prelim.full)$coefficients,4))
@@ -1343,7 +950,7 @@ xtable(confint2000<-confint(model.3.assu, level=0.95))
 \centering
 \begin{tabular}{rrr}
   \hline
- & 2.5 \% & 97.5 \% \\ 
+ & Lower \% & Upper \% \\ 
   \hline
 (Intercept) & 0.03 & 0.16 \\ 
   TwinTRUE & -1.36 & -0.88 \\ 
@@ -1357,25 +964,12 @@ xtable(confint2000<-confint(model.3.assu, level=0.95))
   PremieYes & -0.52 & -0.19 \\ 
    \hline
 \end{tabular}
+\label{CIs for Partial Slope Parameters}
 \end{table}
 
+We are 95\% confident that each coefficent falls within the ranges of their calculated confidence intervals listed in \ref{CIs for Partial Slope Parameters}.
 \end{enumerate}
 
 \end{enumerate}
-
-Highest Accuracy Model:
-\begin{align*}
-\hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \\
-&\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
-&\quad - 0.2970\cdot \text{I}(\text{Twin} = \text{TRUE})\cdot \text{WeeksSC} - 0.0969\cdot \text{I}(\text{Triplet} = \text{TRUE})\cdot \text{WeeksSC} - 0.1005\cdot \text{MomAgeSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \\ &\quad + 0.1588\cdot \text{WeeksSC}\cdot \text{I}(\text{Black} = \text{TRUE}) - 0.0422\cdot \text{WeeksSC}\cdot \text{GainedSC} - 0.1502\cdot \text{WeeksSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) + 1.1080\cdot \text{WeeksSC}\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
-&\quad + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
-\end{align*}
-
-Non-Interact Assumptions Model
-\begin{align*}
-\hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \\
-&\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\
-&\quad - 0.3343\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.3577\cdot \text{I}(\text{Preemie} = \text{Yes})
-\end{align*}
 
 \end{document}
