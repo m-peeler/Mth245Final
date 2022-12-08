@@ -1,0 +1,303 @@
+\section{Part 1: \textbf{Abstract}}
+\textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
+not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\
+\textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \\ \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
+
+
+\section{Part 2: Introduction}
+According to The World Health Organization, the average weight of a baby born at 37–40 weeks ranges from 5 lb 8 oz to 8 lb 13 oz. This is 2,500 grams to 4,000 grams. Birth weight is something that we don't typically consider when we are projecting the health of our future population, but it plays an extremely important role in influencing the expectancy, quality and health of a person's life. If an infant is born with a low birth weight, they could face immediate and long term health issues. If a child is inflicted with long term health issues, they will require medical care and resources for the rest of their lives. These considerations are important population-wise, because as the population grows and the birth weight continues to decrease, there may be a strain on medical care and some resources available to those with long term health issues. Those who work in the healthcare industry regarding women and children's health, especially Obstetricians, should be informed on what social factors and behaviors within the population strongly influence birth weight so that they can provide the correct medical care and advice for each patient, accordingly. Our data is called NCbirths and comes from the Stat2Data package in R datasets. It was collected by statistician John Holcomb at Cleveland State University, from the North Carolina State Center for Health and Environmental Statistics.
+NCbirths contains data from births in North Carolina in 2001, with 1450 observations on 15 variables that include social and behavioral characteristics of the mother. The response variable of our study was BirthWeightGM, which is the baby's birth weight in grams. We hypothesized that the following variables would be the most predictive, after our background research using the Low Birth Weight study published by Stanford University: race of mother, gestation period (weeks), sex of the infant, whether just a single infant was delivered or more than one, if the mother smoked while pregnant, weight gained by mother, the mother's age. We hypothesize that gestation period will be very influential, but our study will determine which other variables are influential. The following code imports our data and alters the type of each variable. We also renamed the levels within our categorical variables, and treated them all as factors. We centered and scaled all of our quantitative variables and created more variables for each transformation conducted on the quantitaive variables. 
+
+<<>>=
+prepData <- function() {
+  births <- read_csv("~/Downloads/NCbirths.csv") 
+
+  births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
+                                              Sex == 2 ~ "Female"),
+                              Marital = case_when(Marital == 1 ~ "Married",
+                                                  Marital == 2 ~ "Unmarried"),
+                              RaceMom = case_when(RaceMom == 1 ~ "White",
+                                                  RaceMom == 2 ~ "Black",
+                                                  RaceMom == 3 ~ "Am. Indian",
+                                                  RaceMom == 4 ~ "Chinese",
+                                                  RaceMom == 5 ~ "Japanese",
+                                                  RaceMom == 6 ~ "Hawaiian",
+                                                  RaceMom == 7 ~ "Filipino",
+                                                  RaceMom == 8 ~ "Other Asian / PI"),
+                              Smoke = case_when(Smoke == 1 ~ "Yes", 
+                                                Smoke == 0 ~ "No"),
+                              Premie = case_when(Premie == 1 ~ "Yes",
+                                                 Premie == 0~ "No"))
+  births$Sex <- as.factor(births$Sex)
+  births$Marital <- as.factor(births$Marital)
+  births$Premie <- as.factor(births$Premie)
+  births$Smoke <- as.factor(births$Smoke)
+  births$RaceMom <- as.factor(births$RaceMom)
+  births$Plural <- as.factor(births$Plural)
+
+  births <- births %>% mutate(MomAgeSC = scale(MomAge, center=T, scale=T),
+                              MomAgeSq = MomAgeSC^2,
+                              WeeksSC = scale(Weeks, center=T, scale=T),
+                              WeeksSq = WeeksSC ^2,
+                              GainedSC = scale(Gained, center=T, scale=T),
+                              GainedSq = I(GainedSC^2))
+
+  births <- births %>% filter(!is.na(GainedSC) & !is.na(Smoke))
+
+  # Part 1: First-Order Model and Determinations of Necessary Transformations
+
+  births <- births %>% mutate(WeightGmLog = log(BirthWeightGm))
+  births <- births %>% mutate(WeightGmSqrt = BirthWeightGm^.5)
+  births <- births %>% mutate(WeightGmS = BirthWeightGm^2)
+  births <- births %>% mutate(WeightGmSLog = log(BirthWeightGm)^2)
+  births <- births %>% mutate(WeightGmLogLog = log(log(BirthWeightGm)))
+  births <- births %>% mutate(WeightGmLogSqr = log(BirthWeightGm^2))
+  births <- births %>% mutate(WeightGmLogQuad = log(BirthWeightGm)^4)
+  births <- births %>% mutate(WeightGmSqrtLog = log(BirthWeightGm)^.5)
+  births <- births %>% mutate(WeightGmInverse = 1/(BirthWeightGm))
+  births <- births %>% mutate(WeightGmSC = scale(BirthWeightGm, center=T, scale=T))
+  births <- births %>% mutate(WeightLogSC = scale(WeightGmLog, center=T, scale=T))
+
+  births <- births %>% mutate(Twin = (as.character(Plural) == "2"))
+  births <- births %>% mutate(Triplet = (as.character(Plural) == "3"))
+  births <- births %>% mutate(Filipino = (RaceMom == "Filipino"))
+  births <- births %>% mutate(Black = (RaceMom == "Black"))
+
+  births$Twin = as.factor(births$Twin)
+  births$Triplet = as.factor(births$Triplet)
+  births$Fllipino = as.factor(births$Filipino)
+  births$Black = as.factor(births$Black)
+
+  births
+
+}
+  
+
+births <- prepData()
+@
+
+\section{Part 3: Exploratory Data Analysis}
+We established some assumptions based of our common knowledge and preliminary research before beginning our Data Analysis. 
+
+\begin{enumerate}[a.]
+\item Weeks of gestation period and birth weight would be heavily correlated.
+\item Smoking would have an effect on the birth weight. 
+\item Instances where the mother's race is black would correspond to low birth weights. 
+\end{enumerate} 
+
+We will reference these assumptions throughout the paper and how they were either accurate or disproved by our models. \\
+
+\begin{enumerate}[a.]
+
+\item \textbf{Graphically and Numerically Summarize Variables from the Dataset} \\
+
+First we visualized our quantitative variables, including our response variable. 
+
+And we specifically created a boxplot for the birth weights recorded for mothers who are Black, since our research from the Stanford study indicated that race is influential in birth weight.
+
+<<ViolinSummary, eval=FALSE, echo=TRUE>>=
+violin.BirthWeightGm <- ggplot(births, aes(x=BirthWeightGm, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Birth Weights(gm)")+
+  ylab(" ")+
+  ggtitle("Distribution of Birth Weights",
+          subtitle = "NCBirths Data")  
+
+
+violin.GestationPeriod <- ggplot(births, aes(x=Weeks, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Weeks")+
+  ylab(" ")+
+  ggtitle("Distribution of Gestation Period",
+          subtitle = "NCBirths Data")
+
+
+violin.MomAge <- ggplot(births, aes(x=MomAge, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Age (years)")+
+  ylab(" ")+
+  ggtitle("Distribution of Mothers' Ages",
+          subtitle = "NCBirths Data")  
+
+violin.MomGained <- ggplot(births, aes(x=Gained, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Weight(gm)")+
+  ylab(" ")+
+  ggtitle("Distribution of Mothers' Weight Gained",
+          subtitle = "NCBirths Data") 
+
+violin.MomAge + violin.BirthWeight + violin.GestationPeriod + violin.MomGained
+  
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(5,6)>>=
+<<ViolinSummary>>
+@
+\caption{Violin plots of each variable.}
+\label{ViolinSummary}
+\end{figure}
+
+From \ref{ViolinSummary} there is noticeable variability in all of the quantitative variables. We also noticed that the plots for Birthweights and Gestation Period showed many outliers on the lower tail, indicating low birth weights. 
+
+We also wanted to visualize the distributions of these variables.
+
+<<HistogramSummary, eval=FALSE, echo=TRUE>>=
+
+histogram.BirthWeight<- ggplot(births, aes(x=BirthWeightGm))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Birth Weights")+
+  ylab("Count of Weight(gm)")+
+  ggtitle("Frequencies of Birth Weights")
+
+
+histogram.Gestation<- ggplot(births, aes(x=Weeks))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Gestation Period")+
+  ylab("Count of Weeks")+
+  ggtitle("Frequencies of Gestation Periods")
+
+histogram.MomAge <- ggplot(births, aes(x=MomAge))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Ages of Mothers(years)")+
+  ylab("Count of Ages")+
+  ggtitle("Frequencies of Ages")
+
+histogram.Gained<- ggplot(births, aes(x=Gained))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Weight Gained")+
+  ylab("Count of Weight(gm) Gained")+
+  ggtitle("Frequencies of Gained Weights")
+
+histogram.BirthWeight + histogram.Gestation + histogram.MomAge + histogram.Gained
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(5,4)>>=
+<<HistogramSummary>>
+@
+\caption{Grid of histograms for the quantitative variables.}
+\label{HistogramSummary}
+\end{figure}
+
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. We expected the distribution for birth weights and weeks of gestation to be similar in shape because those two variables are commonly known to be correlated. Typically babies that are born prematurely have low birth weights. 
+
+We did find it interesting though, that the premature weights in the dataset influence the distribution more than we expected. 
+
+We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether the instances of low birth weights affected the lower end of our confidence interval for median birth weights. 
+
+<<>>=
+## Bootstrapping for median weights 
+median(births$BirthWeightGm)
+
+set.seed(23)
+alpha <- 0.05
+n <- nrow(births)
+R <- 10000
+boot.stats <- rep(NA, R)
+for (i in 1:R){
+  boot.data <- sample(x = births$BirthWeightGm, size = n, replace = TRUE)
+  boot.stats[i] <- median(boot.data)
+}
+
+quantile(boot.stats, probs = c(alpha/2, 1 - alpha/2))
+
+samp.boot.med <- function(data, indicies){
+  median(data[indicies])
+}
+
+boot.medians <- boot(data = births$BirthWeightGm, statistic = samp.boot.med, R = 10000)
+boot.ci(boot.medians, conf = 0.95)
+@
+
+The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our CI = $(3316.95, 3373.65)$ contained our median birth weight, and the lower bound aligned with the World Health Organization's statistic of 3,300 grams. We determined that the premature instances were not as influential as we suspected, and we continued without additional changes to the dataset. 
+
+<<>>=
+#add in weeks 
+(sumstats <- births %>% summarize(meanW=mean(BirthWeightGm),
+                                 medianW = median(BirthWeightGm),
+                                  varianceW=var(BirthWeightGm),
+                                 meanA=mean(MomAge),
+                                 medianA=median(MomAge),
+                                 varianceA = var(MomAge),
+                                 meanWeeks = mean(Weeks),
+                                 medianWeeks = median(Weeks),
+                                 varianceWeeks = var(Weeks),
+                                 meanW=mean(Gained),
+                                 medianW = median(Gained),
+                                varianceW=var(Gained)))
+
+(var(births$Gained))
+
+xtable(sumstats)
+@
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+  \hline
+  Variable & mean & median & variance \\ 
+  \hline
+  Birth weight & 30.59 & 30.00 & 192.53\\
+  Mother's age & 26.79 & 26.00 & 37.08 \\
+  Gestation(weeks) & 38.65 & 39.00 & 7.04 \\ 
+  Weight gained & 30.58978 & 30 & 192.5305 \\
+  \hline
+\end{tabular}
+\caption{Numeric Summary of our quantitative variables.}
+\end{table}
+
+One of our initial assumptions pertained to the race of the mother, so we wanted to visualize this categorical variable with preemie, another categorical variable. The bar chart below shows the percentage of race that corresponds to the number of premature and not premature babies. 
+
+\includegraphics{/Users/marissapatel/Downloads/RacePremiePercent.jpeg}
+
+ We can see that white has the highest percentages for both preemies and non-preemies, however this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. 
+
+\item\textbf{Scatterplot Matrix and Table of Correlations}
+<<CorrelationSummary, eval=FALSE, echo=TRUE>>=
+correlationsmatrix <- ggpairs(births, columns = c(4,5,9,12))
+correlationsmatrix
+@
+
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(5,4)>>=
+<<CorrelationSummary>>
+@
+\caption{Matrix of ScatterPlots and Correlations for the variables.}
+\label{CorrelationSummary}
+\end{figure}
+
+From \ref{CorrelationSummary} we can see that the relationship between birth weight and weeks coincides with our initial assumption, and they are correlated. However, we expected the correlation coefficient to be closer to 1 and it was only 0.585. Though the coefficients for the other variables in the matrix were positive, they were not high enough to be significant. Therefore, we could not make any assumptions about the model and which quantitative variables would be included at this point.
+
+\end{enumerate}
