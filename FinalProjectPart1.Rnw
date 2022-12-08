@@ -1119,7 +1119,7 @@ The following are the descriptions and linear regressions of our two final model
 We wrote a function to perform our assumptions on one of our final models, \textbf{step.reduced.accur}, and assessed the results below.
 <<>>=
 assessModel <- function(model, p) {
-  print(modelSummary(model, plots=F))
+  print(modelSummary(model, plot=F))
   cbind(vif(model), vif(model)[,3]^2)
   print(summary(model$residual))
   print(confint(model))
