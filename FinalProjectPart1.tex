@@ -1066,7 +1066,7 @@ Using these two models, we decided to conduct run cross validation tests to make
 \end{alltt}
 \begin{verbatim}
 ## % latex table generated in R 4.2.1 by xtable 1.8-4 package
-## % Thu Dec  8 01:53:43 2022
+## % Thu Dec  8 01:55:14 2022
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rrrrl}
@@ -1509,16 +1509,16 @@ In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are th
 
 Highest Accuracy Model:
 \begin{align*}
-\hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \newline
-&\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \newline
-&\quad - 0.2970\cdot \text{I}(\text{Twin} = \text{TRUE})\cdot \text{WeeksSC} - 0.0969\cdot \text{I}(\text{Triplet} = \text{TRUE})\cdot \text{WeeksSC} - 0.1005\cdot \text{MomAgeSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \newline &\quad + 0.1588\cdot \text{WeeksSC}\cdot \text{I}(\text{Black} = \text{TRUE}) - 0.0422\cdot \text{WeeksSC}\cdot \text{GainedSC} - 0.1502\cdot \text{WeeksSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) + 1.1080\cdot \text{WeeksSC}\cdot \text{I}(\text{Preemie} = \text{Yes}) \newline
+\hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \\
+&\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
+&\quad - 0.2970\cdot \text{I}(\text{Twin} = \text{TRUE})\cdot \text{WeeksSC} - 0.0969\cdot \text{I}(\text{Triplet} = \text{TRUE})\cdot \text{WeeksSC} - 0.1005\cdot \text{MomAgeSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \\ &\quad + 0.1588\cdot \text{WeeksSC}\cdot \text{I}(\text{Black} = \text{TRUE}) - 0.0422\cdot \text{WeeksSC}\cdot \text{GainedSC} - 0.1502\cdot \text{WeeksSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) + 1.1080\cdot \text{WeeksSC}\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
 &\quad + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
 
 Non-Interact Assumptions Model
 \begin{align*}
-\hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \newline
-&\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \newline
+\hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \\
+&\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\
 &\quad - 0.3343\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.3577\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
 
