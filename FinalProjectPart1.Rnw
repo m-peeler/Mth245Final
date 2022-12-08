@@ -42,13 +42,14 @@ library("caret")
 library("GGally")
 library("olsrr")
 library("gridExtra")
-library("boot")
+library("GGally")
 source("https://cipolli.com/students/code/plotResiduals.R")
 @
 
 \section{\textbf{Abstract}}
 \textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
-not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
+not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\
+\textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \\ \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
 
 
 \section{Introduction}
@@ -57,8 +58,8 @@ NCbirths contains data from births in North Carolina in 2001, with 1450 observat
 
 <<>>=
 prepData <- function() {
-  births <- read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv")
-  
+  births <- read_csv("~/Downloads/NCbirths.csv") 
+
   births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
                                               Sex == 2 ~ "Female"),
                               Marital = case_when(Marital == 1 ~ "Married",
@@ -81,18 +82,18 @@ prepData <- function() {
   births$Smoke <- as.factor(births$Smoke)
   births$RaceMom <- as.factor(births$RaceMom)
   births$Plural <- as.factor(births$Plural)
-  
+
   births <- births %>% mutate(MomAgeSC = scale(MomAge, center=T, scale=T),
                               MomAgeSq = MomAgeSC^2,
                               WeeksSC = scale(Weeks, center=T, scale=T),
                               WeeksSq = WeeksSC ^2,
                               GainedSC = scale(Gained, center=T, scale=T),
                               GainedSq = I(GainedSC^2))
-  
+
   births <- births %>% filter(!is.na(GainedSC) & !is.na(Smoke))
-  
+
   # Part 1: First-Order Model and Determinations of Necessary Transformations
-  
+
   births <- births %>% mutate(WeightGmLog = log(BirthWeightGm))
   births <- births %>% mutate(WeightGmSqrt = BirthWeightGm^.5)
   births <- births %>% mutate(WeightGmS = BirthWeightGm^2)
@@ -104,27 +105,39 @@ prepData <- function() {
   births <- births %>% mutate(WeightGmInverse = 1/(BirthWeightGm))
   births <- births %>% mutate(WeightGmSC = scale(BirthWeightGm, center=T, scale=T))
   births <- births %>% mutate(WeightLogSC = scale(WeightGmLog, center=T, scale=T))
-  
+
   births <- births %>% mutate(Twin = (as.character(Plural) == "2"))
   births <- births %>% mutate(Triplet = (as.character(Plural) == "3"))
   births <- births %>% mutate(Filipino = (RaceMom == "Filipino"))
   births <- births %>% mutate(Black = (RaceMom == "Black"))
-  
+
   births$Twin = as.factor(births$Twin)
   births$Triplet = as.factor(births$Triplet)
   births$Fllipino = as.factor(births$Filipino)
   births$Black = as.factor(births$Black)
-  
+
   births
-  
+
 }
+  
 
 births <- prepData()
 @
 
 \section{Exploratory Data Analysis}
+We established some assumptions based of our common knowledge and preliminary research before beginning our Data Analysis. 
+
 \begin{enumerate}[a.]
-\item\textbf{Graphically summarize the variables in your dataset.}
+\item Weeks of gestation period and birth weight would be heavily correlated.
+\item Smoking would have an effect on the birth weight. 
+\item Instances where the mother's race is black would correspond to low birth weights. 
+\end{enumerate} 
+
+We will reference these assumptions throughout the paper and how they were either accurate or disproved by our models. \\
+
+\begin{enumerate}[a.]
+
+\item \textbf{Graphically and Numerically Summarize Variables from the Dataset} \\
 
 First we visualized our quantitative variables, including our response variable. 
 
@@ -137,7 +150,7 @@ violin.BirthWeightGm <- ggplot(births, aes(x=BirthWeightGm, y=""))+
   geom_boxplot(width = .3,
                fill = "white") +
   theme_bw()+
-  xlab("Birth Weights")+
+  xlab("Birth Weights(gm)")+
   ylab(" ")+
   ggtitle("Distribution of Birth Weights",
           subtitle = "NCBirths Data")  
@@ -166,23 +179,31 @@ violin.MomAge <- ggplot(births, aes(x=MomAge, y=""))+
   ggtitle("Distribution of Mothers' Ages",
           subtitle = "NCBirths Data")  
 
-violin.MomAge + violin.BirthWeightGm + violin.GestationPeriod 
+violin.MomGained <- ggplot(births, aes(x=Gained, y=""))+
+  geom_violin(fill = "lightblue",
+              trim = FALSE)+
+  geom_boxplot(width = .3,
+               fill = "white") +
+  theme_bw()+
+  xlab("Weight(gm)")+
+  ylab(" ")+
+  ggtitle("Distribution of Mothers' Weight Gained",
+          subtitle = "NCBirths Data") 
+
+violin.MomAge + violin.BirthWeightGm + violin.GestationPeriod + violin.MomGained
   
 @
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, fig.dim=c(11,6), eval=FALSE>>=
+<<echo=FALSE, fig.dim=c(8,6)>>=
 <<ViolinSummary>>
 @
 \caption{Violin plots of each variable.}
 \label{ViolinSummary}
 \end{figure}
 
-the shape of the distribution of each variable
-any unusual looking observations
-
-From \ref{ViolinSummary} We can see that there is variability in almost all of the quantitative variables and they all have and many odd observations.
+From \ref{ViolinSummary} there is noticeable variability in all of the quantitative variables. We also noticed that the plots for Birthweights and Gestation Period showed many outliers on the lower tail, indicating low birth weights. 
 
 We also wanted to visualize the distributions of these variables.
 
@@ -216,23 +237,32 @@ histogram.MomAge <- ggplot(births, aes(x=MomAge))+
   ylab("Count of Ages")+
   ggtitle("Frequencies of Ages")
 
-histogram.BirthWeight + histogram.Gestation + histogram.MomAge 
+histogram.Gained<- ggplot(births, aes(x=Gained))+
+  geom_histogram(fill = "lightblue",
+                 color = "black",
+                 bins = 5) +  
+  theme_bw() +
+  xlab("Weight Gained")+
+  ylab("Count of Weight(gm) Gained")+
+  ggtitle("Frequencies of Gained Weights")
+
+histogram.BirthWeight + histogram.Gestation + histogram.MomAge + histogram.Gained
 @
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, fig.dim=c(11,4), eval=FALSE>>=
+<<echo=FALSE, fig.dim=c(8,6)>>=
 <<HistogramSummary>>
 @
 \caption{Grid of histograms for the quantitative variables.}
 \label{HistogramSummary}
 \end{figure}
 
-\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. 
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. We expected the distribution for birth weights and weeks of gestation to be similar in shape because those two variables are commonly known to be correlated. Typically babies that are born prematurely have low birth weights. 
 
-We expected the distribution for weights and weeks to be similar in shape because typically babies that are born prematurely have low birth weights. We did find it interesting though, that the distributions showed more preemies that we initially expected. 
+We did find it interesting though, that the premature weights in the dataset influence the distribution more than we expected. 
 
-We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether a baby born with a median weight falls within the interval. 
+We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether the instances of low birth weights affected the lower end of our confidence interval for median birth weights. 
 
 <<eval=FALSE>>=
 ## Bootstrapping for median weights 
@@ -258,10 +288,9 @@ boot.medians <- boot(data = births$BirthWeightGm, statistic = samp.boot.med, R =
 boot.ci(boot.medians, conf = 0.95)
 @
 
-The median birth weight of our dataset was 3,345.3 grams. Our 95\% percentile confidence interval was 3316.95 g. to 3373.65 g. This range contained our median birth weight of 3,345.3 grams, but more than that, our confidence interval was extremely close to the reported statistics from the World Health Organization of median birth weight of 3.3 kg (The WHO did not include any additional significant figures, so we assume that this could range from values anywhere to 3.25 kg to 3.35 kg.). This seems to lend support to our decision to assume that the collected data was representative of the population, despite the lack of specific knowledge of the collection techniques. Further, it indicates to us that we have a reasonable sample even with its non-normal distribution, that was caused by its skew from data primarily relating to babies born prematurely. 
+The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our CI = $(3316.95, 3373.65)$ contained our median birth weight, and the lower bound aligned with the World Health Organization's statistic of 3,300 grams. We determined that the premature instances were not as influential as we suspected, and we continued without additional changes to the dataset. 
 
 \item\textbf{Numerically summarize the variables in your dataset.}
-<<eval=FALSE>>=
 #add in weeks 
 (sumstats <- births %>% summarize(meanW=mean(BirthWeightGm),
                                  medianW = median(BirthWeightGm),
@@ -271,42 +300,54 @@ The median birth weight of our dataset was 3,345.3 grams. Our 95\% percentile co
                                  varianceA = var(MomAge),
                                  meanWeeks = mean(Weeks),
                                  medianWeeks = median(Weeks),
-                                 varianceWeeks = var(Weeks)))
+                                 varianceWeeks = var(Weeks),
+                                 meanW=mean(Gained),
+                                 medianW = median(Gained),
+                                varianceW=var(Gained)))
 
+(var(births$Gained))
+
+xtable(sumstats)
 @
 
-Tableu visual
+\begin{table}[ht]
+\centering
+\begin{tabular}{lrrrr}
+  \hline
+  Variable & mean & median & variance \\ 
+  \hline
+  Birth weight & 30.59 & 30.00 & 192.53\\
+  Mother's age & 26.79 & 26.00 & 37.08 \\
+  Gestation(weeks) & 38.65 & 39.00 & 7.04 \\ 
+  Weight gained & 30.58978 & 30 & 192.5305 \\
+  \hline
+\end{tabular}
+\caption{Numeric Summary of our quantitative variables.}
+\end{table}
 
-\item\textbf{Create a scatterplot matrix and table of correlations.}
+One of our initial assumptions pertained to the race of the mother, so we wanted to visualize this categorical variable with preemie, another categorical variable. The bar chart below shows the percentage of race that corresponds to the number of premature and not premature babies. 
+
+\includegraphics{/Users/marissapatel/Downloads/RacePremiePercent.jpeg}
+
+ We can see that white has the highest percentages for both preemies and non-preemies, however this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. 
+
+\item\textbf{Scatterplot Matrix and Table of Correlations}
 <<CorrelationSummary, eval=FALSE, echo=TRUE>>=
-library(GGally)
-#ADD IN CORRECT VARIABLE NAMES
-correlationsmatrix <- ggpairs(births, columns = c())
-
+correlationsmatrix <- ggpairs(births, columns = c(4,5,9,12))
 correlationsmatrix
 @
 
 \begin{figure}[H]
 \centering
-<<echo=FALSE, fig.dim=c(11,4)>>=
+<<echo=FALSE, fig.dim=c(5,4)>>=
 <<CorrelationSummary>>
 @
 \caption{Matrix of ScatterPlots and Correlations for the variables.}
 \label{CorrelationSummary}
 \end{figure}
 
-\item\textbf{Other interesting plots.}
+From \ref{CorrelationSummary} we can see that the relationship between birth weight and weeks coincides with our initial assumption, and they are correlated. However, we expected the correlation coefficient to be closer to 1 and it was only 0.585. Though the coefficients for the other variables in the matrix were positive, they were not high enough to be significant. Therefore, we could not make any assumptions about the model and which quantitative variables would be included at this point.
 
-Plot significant correlations 
-- weeks and birth weight
-
-\item\textbf{Comment on...}
-\begin{enumerate}[]
-\item{the shape of the distribution of each variable}
-\item{the relationship between the response and the quantitative predictors}
-\item{any unusual looking observations}
-\item{any other interesting takeaways}
-\end{enumerate}
 \end{enumerate}
 
 Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This attribute is originally calculated off of birth weight, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model from data that we could not know without having already had the response variable provided to us.
@@ -407,11 +448,12 @@ predictForSubsets <- function(model, class.attr, ..., names=c()) {
 @
 
 \subsection{First Order Model}
+Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This predictor was calculated off of BirthWeightGm, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model. 
 
 Fitting a first-order linear model with all our acceptable predictor variables, we calculated the following estimated linear regression equation: \\
 
 \begin{align*} \hat{y} &= -964.29 - 704.71\cdot \text{I}(\text{Plural} = 2) - 932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Preemie} = \text{Yes}) \end{align*}
-  
+
   
 <<eval=FALSE>>=
 #first model = model.1
@@ -422,7 +464,6 @@ modelSummary(model.1, plot=FALSE)
 @
   
 <<results=FALSE, eval=FALSE>>=
-
 xtable(model.1, caption="Predictor Statistics and Significance for First-Order Model", label="First.Order.Table")
 @
 
@@ -497,6 +538,7 @@ Before eliminating the non-significant variables from our model we wanted to tes
 \caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
 \label{tab.comp.transform}
 \end{table}
+
 
 
 Based on Table \ref{tab.comp.transform}, we have several potential transformation options. First is the un-transformed weight, which better satisfies the assumptions behind linear regression modeling, namely the equal
@@ -1058,38 +1100,268 @@ assessModel <- function(model, p) {
   cbind(vif(model), vif(model)[,3]^2)
   print(summary(model$residual))
   print(confint(model))
+  
+  #leverage points
   lev <- model$model %>% mutate(h.values = hatvalues(model))
+  #high leverage points 
   print(summary(lev$h.values))
   n <- nrow(model$model)
   high.lev <- lev %>% filter(h.values > 2*p/n)
   print(paste("High Lev.:", nrow(high.lev)))
+  #very high leverage points
   v.high.lev <- lev %>% filter(h.values > 3*p/n)
   print(paste("Very High Lev.:", nrow(v.high.lev)))
   
+  #Stud and Stand residual quantiles 
+
   new.resid <- model$model %>% mutate(stdres = rstandard(model),
                                       stures = rstudent(model))
   print("Standard Residual Quant.:")
   print(summary(new.resid$stdres))
   print("Studentized Residual Quant.:")
   print(summary(new.resid$stures))
+  
+  #outliers
   s.outliers.stdres <- new.resid %>% filter(abs(stdres)>3)
-  print(paste("Strong Standard Residual Outliers:", nrow(s.outliers.stdres)))
+  (paste("Strong Standard Residual Outliers:", nrow(s.outliers.stdres)))
   print(s.outliers.stdres)
   s.outliers.stures <- new.resid %>% filter(abs(stures)>3)
   print(paste("String Studentized Residual Outliers:", nrow(s.outliers.stures)))
   print(s.outliers.stures)
+  
+  #Cooks Values
   cooks.values <- model$model %>% mutate(cooks = cooks.distance(model))
   print("Cook's Values:")
   print(summary(cooks.values$cooks))
   cooks.strong <- cooks.values %>% filter(cooks>1)
   print(paste("Strong C. Values:", nrow(cooks.strong)))
 }
+assessModel(mod.accur.prelim.full, 16, "WeightLogSC")
+@
+\begin{enumerate}[i.]
+\item Independence and Representativeness \\
 
-assessModel(mod.accur.final)
-assessModel(mod.accur.final.part)
-assessModel(min.vif.model)
+Our data comes from the Stat2Data library, and the data was pulled from a dataset originally collected by the North Carolina State Center for Health and Environmental Statistics. We could not find information on how the data was collected, however the dataset was created by statistician John Holcomb at Cleveland State University. Given that the data is in the Stat2Data library and was created by a statistician, we believe that the dataset must have been thoroughly vetted and must have met the requirements for independence and representativeness to be published. Though, we do know that the North Carolina State Center for Health and Environmental Statistics orginally collected the data from all 100 counties in North Carolina, as it is stated on their website. This information tells us that the data is at least somewhat randomized.
+
+\item Multicollinearity \\
+In the previous section we handled multicollinearity in this final model, and \ref{VIF Values} below verifies that all VIFs for all parameters are less than $\leq$ 5, indicating moderate multicollinearity within the model. 
+
+<<mod.accur.prelim.full.vif, eval=FALSE, echo=TRUE>>=
+xtable(cbind(vif(mod.accur.prelim.full), vif(mod.accur.prelim.full)[,3]^2))
+@
+\begin{table}[ht]
+\centering
+\begin{tabular}{rr}
+  \hline
+  Predictor & V4 \\ 
+  \hline
+  Plural & 3.17 \\ 
+  Sex & 1.01 \\ 
+  MomAgeSC & 1.27 \\ 
+  WeeksSC & 4.02 \\ 
+  Black & 1.59 \\ 
+  GainedSC & 1.04 \\ 
+  Smoke & 1.34 \\ 
+  Premie & 4.95 \\ 
+  Plural:WeeksSC & 3.70 \\ 
+  MomAgeSC:Smoke & 1.24 \\ 
+  WeeksSC:Black & 3.51 \\ 
+  WeeksSC:GainedSC & 1.30 \\ 
+  WeeksSC:Smoke & 1.40 \\ 
+  WeeksSC:Premie & 7.91 \\ 
+  Black:Smoke & 1.44 \\ 
+  Black:Premie & 3.64 \\ 
+   \hline
+\end{tabular}
+\label{VIF Values}
+\caption{VIF values for predictors in our final model.}
+\end{table}
+
+\item Constant Variance/Normality of Errors\\
+<<mod.accur.prelim.full.residuals, eval=FALSE, echo=TRUE>>=
+plotResiduals(mod.accur.prelim.full)
 @
 
+\begin{figure}[H]
+\centering
+<<echo=FALSE, fig.dim=c(8,7)>>=
+<<mod.accur.prelim.full.residuals>>
+@
+\caption{The residuals for our final model.}
+\label{mod.accur.prelim.full.residuals}
+\end{figure}
+\ref{mod.accur.prelim.full.residuals}: A figure of some diagnostic plots for the linear model where Y is birth weights and the predictors are Plural, Sex, MomAgeSC, WeeksSC, Black, GainedSC, Smoke, Premie, Plural:WeeksSC, MomAgeSC:Smoke, WeeksSC:Black, WeeksSC:GainedSC, WeeksSC:Smoke, WeeksSC:Premie, Black:Smoke, and Black:Premie.
+
+As seen in \ref{mod.accur.prelim.full.residuals}, the constant variance assumption is met for the most part and the normality assumption is met. 
+\end{enumerate}
+
+\item \textbf{Influence analysis}
+\begin{enumerate}[i.]
+\item Leverage Points \\
+
+From our Exploratory Analysis, we already knew that we had some outlier instances. This section will help us determine if any of those outliers are actually significant.
+
+Our function first calculated 191 high leverage values 191. Then it calculated 100 very high leverage values. 
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  0.001977 & 0.003557 & 0.006024 & 0.013485 & 0.012288 & 0.942679 \\
+   \hline
+\end{tabular}
+\label{High Leverage Values Quantile Summary}
+\caption{High Leverage Values Quantile Summary.}
+\end{table}
+
+
+\item Standardized/Studentized Residuals\\
+Next, our function output the summaries of the Standardized/Studentized Residuals and the outliers of our dataset. \\
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  -7.313842 & -0.546892 & 0.022207 & -0.000838 & 0.642574 & 4.483741 \\
+   \hline
+\end{tabular}
+\label{Standardized Residuals Quantile Summary}
+\caption{Standardized Residuals Quantile Summary.}
+\end{table}
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  -7.456087 & -0.546754 & 0.022199 & -0.001093 &  0.642438 & 4.514897 \\
+   \hline
+\end{tabular}
+\label{Studentized Residuals Quantile Summary}
+\caption{Studentized Residuals Quantile Summary.}
+\end{table}
+
+\item Outliers\\
+
+From our previous calculation of the high leverage values, we found 17 outlier instances in our dataset that fell outside the expected departures from our residual curve. They are listed in the table below:
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrrrrr}
+  \hline
+   WeightLogSC & Plural & Sex & MomAgeSC & WeeksSC Black & GainedSC & Smoke & Premie \\ 
+  \hline
+  -1.79825625 & 1 & Male & -0.94445468 & -0.2301192 & FALSE & -0.7639289 & No & No\\
+  -2.02393397 & 1 &  Male & -0.94445468 & 0.5108647 & FALSE & -1.0521654 & Yes &  No \\
+  -2.14180198 & 1 & Female & -0.94445468 & 0.5108647 & FALSE & -1.8448158 & No & No \\
+  -1.90948290 & 1 & Female & -0.28842628  & 1.6223405 & FALSE & -0.9080472 & Yes & No \\ 
+  -1.09672028 & 1 &  Male & -1.27246888 & -2.8235628 &  FALSE & -1.4845202 & No & Yes\\
+  -5.38870953 & 1 & Male & -0.94445468 & -3.5645467 & FALSE  & 0.1728397 & No & Yes\\
+  -3.56718564 & 1 &  Male & 0.03958792 & -2.4530708 & FALSE & 1.0375492 & No & Yes\\
+  -4.53499902 & 1 & Male & 0.20359502 & -1.7120870 & FALSE & -0.7639289 & Yes & Yes\\
+  -6.66311095 & 1 & Male & -0.78044758 & -3.9350386 & FALSE & -0.7639289 & No & Yes\\
+  -5.25485653 & 1 & Female & -1.43647598 & -1.3415950 & FALSE & -0.8359881 & No & Yes\\
+  -7.73678282 & 1 & Male & -1.27246888 &-4.3055305 & TRUE & -1.4124611  & No & Yes\\
+  -8.87263370 & 2 & Female & -1.10846178 & -6.1579902 & TRUE & 0.6772536 & No & Yes\\
+  -2.26329727 & 1 & Male & -0.45243338 & -0.6006112 & TRUE & 0.1728397 & No & No\\
+  -4.02151218 & 1 & Female & -1.43647598 & -4.6760225 & TRUE & -1.4845202 & No & Yes\\
+   0.08477603 & 1 & Female & 0.53160922 & -2.4530708 & TRUE & 0.8934309 & Yes & Yes\\
+  -0.01867841 & 1 & Male & 0.69561632 & -2.8235628 & TRUE & -0.3315742 & No & Yes\\
+  -1.43192750 & 1 & Male & -0.45243338 & 0.1403727 & FALSE & 0.8213718 & No & No\\
+   \hline
+\end{tabular}
+\label{}
+\caption{Outliers that are outside the expected departure.}
+\end{table}
+
+
+\item Influential Observations\\
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  0.0000000 & 0.0000240 & 0.0001095 & 0.0014421 & 0.0004313 & 0.4464716 \\
+   \hline
+\end{tabular}
+\label{Cook's test Quantile Summary}
+\caption{Cook's test Quantile Summary.}
+\end{table}
+\end{enumerate}
+
+Our function ran Cook's test and found that there are no influential observations in the dataset. 
+
+\item \textbf{Summarize the findings of your final models}
+\begin{enumerate}[i.]
+\item Fitted Model
+<<>>=
+xtable(round(summary(mod.accur.prelim.full)$coefficients,4))
+@
+
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 0.18 & 0.03 & 6.49 & 0.00 \\ 
+  Plural2 & -1.23 & 0.14 & -8.97 & 0.00 \\ 
+  Plural3 & -1.03 & 0.63 & -1.64 & 0.10 \\ 
+  SexMale & 0.11 & 0.03 & 3.51 & 0.00 \\ 
+  MomAgeSC & 0.09 & 0.02 & 5.14 & 0.00 \\ 
+  WeeksSC & 0.17 & 0.03 & 5.26 & 0.00 \\ 
+  BlackTRUE & -0.22 & 0.05 & -4.66 & 0.00 \\ 
+  GainedSC & 0.12 & 0.02 & 7.80 & 0.00 \\ 
+  SmokeYes & -0.27 & 0.05 & -5.22 & 0.00 \\ 
+  PremieYes & 0.85 & 0.10 & 8.10 & 0.00 \\ 
+  Plural2:WeeksSC & -0.30 & 0.07 & -4.25 & 0.00 \\ 
+  Plural3:WeeksSC & -0.10 & 0.21 & -0.46 & 0.65 \\ 
+  MomAgeSC:SmokeYes & -0.10 & 0.05 & -2.16 & 0.03 \\ 
+  WeeksSC:BlackTRUE & 0.16 & 0.05 & 3.05 & 0.00 \\ 
+  WeeksSC:GainedSC & -0.04 & 0.02 & -2.50 & 0.01 \\ 
+  WeeksSC:SmokeYes & -0.15 & 0.04 & -3.56 & 0.00 \\ 
+  WeeksSC:PremieYes & 1.11 & 0.06 & 18.45 & 0.00 \\ 
+  BlackTRUE:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
+  BlackTRUE:PremieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\item Confidence intervals for partial slope parameters
+<<>>=
+xtable(confint2000<-confint(model.3.assu, level=0.95))
+@
+\begin{table}[ht]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & 2.5 \% & 97.5 \% \\ 
+  \hline
+(Intercept) & 0.03 & 0.16 \\ 
+  TwinTRUE & -1.36 & -0.88 \\ 
+  TripletTRUE & -2.21 & -0.73 \\ 
+  SexMale & 0.07 & 0.23 \\ 
+  MomAgeSC & 0.08 & 0.16 \\ 
+  WeeksSC & 0.36 & 0.48 \\ 
+  BlackTRUE & -0.29 & -0.10 \\ 
+  GainedSC & 0.13 & 0.21 \\ 
+  SmokeYes & -0.45 & -0.22 \\ 
+  PremieYes & -0.52 & -0.19 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\end{enumerate}
+
+\end{enumerate}
 
 Highest Accuracy Model:
 \begin{align*}
