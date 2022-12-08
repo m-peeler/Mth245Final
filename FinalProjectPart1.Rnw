@@ -421,7 +421,7 @@ lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
 modelSummary(model.1, plot=FALSE)
 @
   
-<<results='asis', eval=FALSE>>=
+<<results=FALSE, eval=FALSE>>=
 
 xtable(model.1, caption="Predictor Statistics and Significance for First-Order Model", label="First.Order.Table")
 @
