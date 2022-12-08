@@ -298,11 +298,11 @@ y <- births$WeightGmSC
 xy <- as.data.frame(cbind(x,y))
 best.subsets.aic <- bestglm(xy, IC="AIC", TopModels = 5)
 best.model.aic <- best.subsets.aic$BestModel
-modelSummary(best.model.aic)
+modelSummary(best.model.aic, plot=F)
 
 best.subsets.bic <- bestglm(xy, IC="BIC", TopModels = 5)
 best.model.bic <- best.subsets.bic$BestModel
-modelSummary(best.model.bic)
+modelSummary(best.model.bic, plot=F)
 
 regsubsets.out <- regsubsets(WeightGmSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
                                Marital + GainedSC + Smoke + Premie,
@@ -432,8 +432,8 @@ modelSummary(lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC +
                   WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
                   Black:Smoke + Black:Premie, data = births), coef=F)
 
-mod.accur.prelim.full <- lm(formula = WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + 
-                               Black + GainedSC + Smoke + Premie + Plural:WeeksSC + MomAgeSC:Smoke + 
+mod.accur.prelim.full <- lm(formula = WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + 
+                               Black + GainedSC + Smoke + Premie + Twin:WeeksSC + Triplet:WeeksSC + MomAgeSC:Smoke + 
                                WeeksSC:Black + WeeksSC:GainedSC + WeeksSC:Smoke + WeeksSC:Premie + 
                                Black:Smoke + Black:Premie, data = births)
 
