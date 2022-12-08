@@ -76,7 +76,7 @@
 
 \vspace{.3cm}
 
-\textbf{Name: } 
+\textbf{Name: } Marissa Patel \& Michael Peeler 
 
 \vspace{.3cm}
 
@@ -94,7 +94,7 @@
 \hlkwd{library}\hlstd{(}\hlstr{"GGally"}\hlstd{)}
 \hlkwd{library}\hlstd{(}\hlstr{"olsrr"}\hlstd{)}
 \hlkwd{library}\hlstd{(}\hlstr{"gridExtra"}\hlstd{)}
-\hlkwd{library}\hlstd{(}\hlstr{"boot"}\hlstd{)}
+\hlkwd{library}\hlstd{(}\hlstr{"GGally"}\hlstd{)}
 \hlkwd{source}\hlstd{(}\hlstr{"https://cipolli.com/students/code/plotResiduals.R"}\hlstd{)}
 \end{alltt}
 \end{kframe}
@@ -102,7 +102,8 @@
 
 \section{\textbf{Abstract}}
 \textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
-not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
+not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\
+\textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \\ \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
 
 
 \section{Introduction}
@@ -183,8 +184,19 @@ NCbirths contains data from births in North Carolina in 2001, with 1450 observat
 \end{knitrout}
 
 \section{Exploratory Data Analysis}
+We established some assumptions based of our common knowledge and preliminary research before beginning our Data Analysis. 
+
 \begin{enumerate}[a.]
-\item\textbf{Graphically summarize the variables in your dataset.}
+\item Weeks of gestation period and birth weight would be heavily correlated.
+\item Smoking would have an effect on the birth weight. 
+\item Instances where the mother's race is black would correspond to low birth weights. 
+\end{enumerate} 
+
+We will reference these assumptions throughout the paper and how they were either accurate or disproved by our models. \\
+
+\begin{enumerate}[a.]
+
+\item \textbf{Graphically and Numerically Summarize Variables from the Dataset} \\
 
 First we visualized our quantitative variables, including our response variable. 
 
@@ -199,7 +211,7 @@ And we specifically created a boxplot for the birth weights recorded for mothers
   \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
                \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
   \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
-  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weights"}\hlstd{)}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Birth Weights(gm)"}\hlstd{)}\hlopt{+}
   \hlkwd{ylab}\hlstd{(}\hlstr{" "}\hlstd{)}\hlopt{+}
   \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Birth Weights"}\hlstd{,}
           \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
@@ -228,22 +240,33 @@ And we specifically created a boxplot for the birth weights recorded for mothers
   \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Mothers' Ages"}\hlstd{,}
           \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
 
-\hlstd{violin.MomAge} \hlopt{+} \hlstd{violin.BirthWeightGm} \hlopt{+} \hlstd{violin.GestationPeriod}
+\hlstd{violin.MomGained} \hlkwb{<-} \hlkwd{ggplot}\hlstd{(births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=Gained,} \hlkwc{y}\hlstd{=}\hlstr{""}\hlstd{))}\hlopt{+}
+  \hlkwd{geom_violin}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+              \hlkwc{trim} \hlstd{=} \hlnum{FALSE}\hlstd{)}\hlopt{+}
+  \hlkwd{geom_boxplot}\hlstd{(}\hlkwc{width} \hlstd{=} \hlnum{.3}\hlstd{,}
+               \hlkwc{fill} \hlstd{=} \hlstr{"white"}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()}\hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Weight(gm)"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{" "}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Distribution of Mothers' Weight Gained"}\hlstd{,}
+          \hlkwc{subtitle} \hlstd{=} \hlstr{"NCBirths Data"}\hlstd{)}
+
+\hlstd{violin.MomAge} \hlopt{+} \hlstd{violin.BirthWeightGm} \hlopt{+} \hlstd{violin.GestationPeriod} \hlopt{+} \hlstd{violin.MomGained}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
 
 \begin{figure}[H]
 \centering
-
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-3-1} 
+\end{knitrout}
 \caption{Violin plots of each variable.}
 \label{ViolinSummary}
 \end{figure}
 
-the shape of the distribution of each variable
-any unusual looking observations
-
-From \ref{ViolinSummary} We can see that there is variability in almost all of the quantitative variables and they all have and many odd observations.
+From \ref{ViolinSummary} there is noticeable variability in all of the quantitative variables. We also noticed that the plots for Birthweights and Gestation Period showed many outliers on the lower tail, indicating low birth weights. 
 
 We also wanted to visualize the distributions of these variables.
 
@@ -278,23 +301,35 @@ We also wanted to visualize the distributions of these variables.
   \hlkwd{ylab}\hlstd{(}\hlstr{"Count of Ages"}\hlstd{)}\hlopt{+}
   \hlkwd{ggtitle}\hlstd{(}\hlstr{"Frequencies of Ages"}\hlstd{)}
 
-\hlstd{histogram.BirthWeight} \hlopt{+} \hlstd{histogram.Gestation} \hlopt{+} \hlstd{histogram.MomAge}
+\hlstd{histogram.Gained}\hlkwb{<-} \hlkwd{ggplot}\hlstd{(births,} \hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=Gained))}\hlopt{+}
+  \hlkwd{geom_histogram}\hlstd{(}\hlkwc{fill} \hlstd{=} \hlstr{"lightblue"}\hlstd{,}
+                 \hlkwc{color} \hlstd{=} \hlstr{"black"}\hlstd{,}
+                 \hlkwc{bins} \hlstd{=} \hlnum{5}\hlstd{)} \hlopt{+}
+  \hlkwd{theme_bw}\hlstd{()} \hlopt{+}
+  \hlkwd{xlab}\hlstd{(}\hlstr{"Weight Gained"}\hlstd{)}\hlopt{+}
+  \hlkwd{ylab}\hlstd{(}\hlstr{"Count of Weight(gm) Gained"}\hlstd{)}\hlopt{+}
+  \hlkwd{ggtitle}\hlstd{(}\hlstr{"Frequencies of Gained Weights"}\hlstd{)}
+
+\hlstd{histogram.BirthWeight} \hlopt{+} \hlstd{histogram.Gestation} \hlopt{+} \hlstd{histogram.MomAge} \hlopt{+} \hlstd{histogram.Gained}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
 
 \begin{figure}[H]
 \centering
-
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-4-1} 
+\end{knitrout}
 \caption{Grid of histograms for the quantitative variables.}
 \label{HistogramSummary}
 \end{figure}
 
-\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. 
+\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. We expected the distribution for birth weights and weeks of gestation to be similar in shape because those two variables are commonly known to be correlated. Typically babies that are born prematurely have low birth weights. 
 
-We expected the distribution for weights and weeks to be similar in shape because typically babies that are born prematurely have low birth weights. We did find it interesting though, that the distributions showed more preemies that we initially expected. 
+We did find it interesting though, that the premature weights in the dataset influence the distribution more than we expected. 
 
-We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether a baby born with a median weight falls within the interval. 
+We weren't sure if the preemie weights in the data set were outlier instances that were heavily skewing the distribution, or if there were just more preemies that we expected. To further investigate this, we created a bootstrap confidence interval to see whether the instances of low birth weights affected the lower end of our confidence interval for median birth weights. 
 
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -324,7 +359,7 @@ We weren't sure if the preemie weights in the data set were outlier instances th
 \end{kframe}
 \end{knitrout}
 
-The median birth weight of our dataset was 3,345.3 grams. Our 95\% percentile confidence interval was 3316.95 g. to 3373.65 g. This range contained our median birth weight of 3,345.3 grams, but more than that, our confidence interval was extremely close to the reported statistics from the World Health Organization of median birth weight of 3.3 kg (The WHO did not include any additional significant figures, so we assume that this could range from values anywhere to 3.25 kg to 3.35 kg.). This seems to lend support to our decision to assume that the collected data was representative of the population, despite the lack of specific knowledge of the collection techniques. Further, it indicates to us that we have a reasonable sample even with its non-normal distribution, that was caused by its skew from data primarily relating to babies born prematurely. 
+The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our CI = $(3316.95, 3373.65)$ contained our median birth weight, and the lower bound aligned with the World Health Organization's statistic of 3,300 grams. We determined that the premature instances were not as influential as we suspected, and we continued without additional changes to the dataset. 
 
 \item\textbf{Numerically summarize the variables in your dataset.}
 \begin{knitrout}
@@ -339,21 +374,70 @@ The median birth weight of our dataset was 3,345.3 grams. Our 95\% percentile co
                                  \hlkwc{varianceA} \hlstd{=} \hlkwd{var}\hlstd{(MomAge),}
                                  \hlkwc{meanWeeks} \hlstd{=} \hlkwd{mean}\hlstd{(Weeks),}
                                  \hlkwc{medianWeeks} \hlstd{=} \hlkwd{median}\hlstd{(Weeks),}
-                                 \hlkwc{varianceWeeks} \hlstd{=} \hlkwd{var}\hlstd{(Weeks)))}
+                                 \hlkwc{varianceWeeks} \hlstd{=} \hlkwd{var}\hlstd{(Weeks),}
+                                 \hlkwc{meanW}\hlstd{=}\hlkwd{mean}\hlstd{(Gained),}
+                                 \hlkwc{medianW} \hlstd{=} \hlkwd{median}\hlstd{(Gained),}
+                                \hlkwc{varianceW}\hlstd{=}\hlkwd{var}\hlstd{(Gained)))}
 \end{alltt}
+\begin{verbatim}
+## # A tibble: 1 x 9
+##   meanW medianW varianceW meanA medianA varianceA meanWeeks medianWeeks varian~1
+##   <dbl>   <dbl>     <dbl> <dbl>   <dbl>     <dbl>     <dbl>       <dbl>    <dbl>
+## 1  30.6      30      193.  26.8      26      37.1      38.6          39     7.04
+## # ... with abbreviated variable name 1: varianceWeeks
+\end{verbatim}
+\begin{alltt}
+\hlstd{(}\hlkwd{var}\hlstd{(births}\hlopt{$}\hlstd{Gained))}
+\end{alltt}
+\begin{verbatim}
+## [1] 192.5305
+\end{verbatim}
+\begin{alltt}
+\hlkwd{xtable}\hlstd{(sumstats)}
+\end{alltt}
+\begin{verbatim}
+## % latex table generated in R 4.2.1 by xtable 1.8-4 package
+## % Thu Dec  8 03:32:35 2022
+## \begin{table}[ht]
+## \centering
+## \begin{tabular}{rrrrrrrrrr}
+##   \hline
+##  & meanW & medianW & varianceW & meanA & medianA & varianceA & meanWeeks & medianWeeks & varianceWeeks \\ 
+##   \hline
+## 1 & 30.59 & 30.00 & 192.53 & 26.79 & 26.00 & 37.08 & 38.65 & 39.00 & 7.04 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+\end{verbatim}
 \end{kframe}
 \end{knitrout}
 
-Tableu visual
+\begin{table}[H]
+\centering
+\begin{tabular}{lrrrr}
+  \hline
+  Variable & mean & median & variance \\ 
+  \hline
+  Birth weight & 30.59 & 30.00 & 192.53\\
+  Mother's age & 26.79 & 26.00 & 37.08 \\
+  Gestation(weeks) & 38.65 & 39.00 & 7.04 \\ 
+  Weight gained & 30.58978 & 30 & 192.5305 \\
+  \hline
+\end{tabular}
+\caption{Numeric Summary of our quantitative variables.}
+\end{table}
 
-\item\textbf{Create a scatterplot matrix and table of correlations.}
+One of our initial assumptions pertained to the race of the mother, so we wanted to visualize this categorical variable with preemie, another categorical variable. The bar chart below shows the percentage of race that corresponds to the number of premature and not premature babies. 
+
+\includegraphics{./RacePremiePercent.jpg}
+
+ We can see that white has the highest percentages for both preemies and non-preemies, however this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. 
+
+\item\textbf{Scatterplot Matrix and Table of Correlations}
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlkwd{library}\hlstd{(GGally)}
-\hlcom{#ADD IN CORRECT VARIABLE NAMES}
-\hlstd{correlationsmatrix} \hlkwb{<-} \hlkwd{ggpairs}\hlstd{(births,} \hlkwc{columns} \hlstd{=} \hlkwd{c}\hlstd{())}
-
+\hlstd{correlationsmatrix} \hlkwb{<-} \hlkwd{ggpairs}\hlstd{(births,} \hlkwc{columns} \hlstd{=} \hlkwd{c}\hlstd{(}\hlnum{4}\hlstd{,}\hlnum{5}\hlstd{,}\hlnum{9}\hlstd{,}\hlnum{12}\hlstd{))}
 \hlstd{correlationsmatrix}
 \end{alltt}
 \end{kframe}
@@ -362,29 +446,15 @@ Tableu visual
 \begin{figure}[H]
 \centering
 \begin{knitrout}
-\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
-
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in data.frame(plotType = plotType, xVar = xVar, yVar = yVar, posX = posX, : arguments imply differing number of rows: 0, 1}}
-
-{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in eval(expr, envir, enclos): object 'correlationsmatrix' not found}}\end{kframe}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-7-1} 
 \end{knitrout}
 \caption{Matrix of ScatterPlots and Correlations for the variables.}
 \label{CorrelationSummary}
 \end{figure}
 
-\item\textbf{Other interesting plots.}
+From \ref{CorrelationSummary} we can see that the relationship between birth weight and weeks coincides with our initial assumption, and they are correlated. However, we expected the correlation coefficient to be closer to 1 and it was only 0.585. Though the coefficients for the other variables in the matrix were positive, they were not high enough to be significant. Therefore, we could not make any assumptions about the model and which quantitative variables would be included at this point.
 
-Plot significant correlations 
-- weeks and birth weight
-
-\item\textbf{Comment on...}
-\begin{enumerate}[]
-\item{the shape of the distribution of each variable}
-\item{the relationship between the response and the quantitative predictors}
-\item{any unusual looking observations}
-\item{any other interesting takeaways}
-\end{enumerate}
 \end{enumerate}
 
 Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This attribute is originally calculated off of birth weight, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model from data that we could not know without having already had the response variable provided to us.
@@ -489,11 +559,12 @@ where $R_i$ is equal to the $i^{th}$ lowest actual residual and $T_i$ is the $i^
 \end{knitrout}
 
 \subsection{First Order Model}
+Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This predictor was calculated off of BirthWeightGm, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model. 
 
 Fitting a first-order linear model with all our acceptable predictor variables, we calculated the following estimated linear regression equation: \\
 
 \begin{align*} \hat{y} &= -964.29 - 704.71\cdot \text{I}(\text{Plural} = 2) - 932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Preemie} = \text{Yes}) \end{align*}
-  
+
   
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
@@ -507,13 +578,15 @@ Fitting a first-order linear model with all our acceptable predictor variables, 
 \end{kframe}
 \end{knitrout}
   
-\begin{kframe}
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hlkwd{xtable}\hlstd{(model.1,} \hlkwc{caption}\hlstd{=}\hlstr{"Predictor Statistics and Significance for First-Order Model"}\hlstd{,} \hlkwc{label}\hlstd{=}\hlstr{"First.Order.Table"}\hlstd{)}
 \end{alltt}
 \end{kframe}
+\end{knitrout}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrrrr}
   \hline
@@ -568,7 +641,7 @@ As Table \ref{First.Order.Table} indicates, Plural2 (Twins), Plural3 (Triplets),
 
 Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to see if any of them improved our model performance statistics or residual distributions. The model statistics for each transformation are listed in Table \ref{tab.com.transform}. 
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrrrr}
   \hline
@@ -588,6 +661,7 @@ Before eliminating the non-significant variables from our model we wanted to tes
 \caption{Summary of all adjusted first order regression model R-squared, Adj R-squared, RSE, AIC, and BIC.}
 \label{tab.comp.transform}
 \end{table}
+
 
 
 Based on Table \ref{tab.comp.transform}, we have several potential transformation options. First is the un-transformed weight, which better satisfies the assumptions behind linear regression modeling, namely the equal
@@ -789,7 +863,7 @@ For the assumption model, we found that the AIC-based technique, the BIC-based t
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -961,7 +1035,7 @@ Just as with the model for the non-transformed weights, the same variables - all
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -1022,7 +1096,7 @@ Using these two models, we decided to conduct run cross validation tests to make
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -1066,7 +1140,7 @@ Using these two models, we decided to conduct run cross validation tests to make
 \end{alltt}
 \begin{verbatim}
 ## % latex table generated in R 4.2.1 by xtable 1.8-4 package
-## % Thu Dec  8 01:55:14 2022
+## % Thu Dec  8 03:33:33 2022
 ## \begin{table}[ht]
 ## \centering
 ## \begin{tabular}{rrrrl}
@@ -1074,7 +1148,7 @@ Using these two models, we decided to conduct run cross validation tests to make
 ##  & RMSE & Rsquared & MAE & Name \\ 
 ##   \hline
 ## 1 & 0.74 & 0.45 & 0.58 & LOOCV \\ 
-##   2 & 0.74 & 0.45 & 0.58 & K-Fold \\ 
+##   2 & 0.74 & 0.44 & 0.58 & K-Fold \\ 
 ##    \hline
 ## \end{tabular}
 ## \caption{Comparison of Cross-Validation Techniques} 
@@ -1084,7 +1158,7 @@ Using these two models, we decided to conduct run cross validation tests to make
 \end{kframe}
 \end{knitrout}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -1137,7 +1211,7 @@ After obtaining our new model, we were curious as to how some of the predictors 
 
 As Figures \ref{resid.3.un} and \ref{resid.3.log} demonstrate, both model tend to have higher residual departures for premature births than they do for the dataset as a whole or for the subset of non-premature births. This is also reflected in the MAE values, as seen in Table \ref{subset.comp}, where the premature birth subset is always lower than the non-premature birth or the full dataset. However, Table \ref{subset.comp} also shows that premature births also have a much higher correlation with the predicted values from the model, meaning that in some sense they are both more predictive of the general trends in premature birth weights than of non-premature birth weights. Further, the logarithmic model is much better at predicting births that are at the higher ends of the weight range than at the lower end of the range, while the non-transformed model is more consistent across weight ranges. 
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrr}
   \hline
@@ -1167,7 +1241,7 @@ Our next goal was to see if we could improve accuracy by fitting a full interact
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -1251,7 +1325,7 @@ To prune our interaction model, we used the step-wise reduction method to reduce
 \end{alltt}
 \end{kframe}
 \end{knitrout}
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -1331,7 +1405,7 @@ This leaves us with a total of 18 regression attributes with associated estimate
 \end{kframe}
 \end{knitrout}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -1410,7 +1484,7 @@ Before finalizing our models, we checked to ensure that variance inflation did n
 \end{kframe}
 \end{knitrout}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rr}
   \hline
@@ -1431,7 +1505,7 @@ Twin & 1.13 \\
 \label{vif.val.assu}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rr}
   \hline
@@ -1464,6 +1538,28 @@ Twin & 2.24 \\
 In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are thus very acceptable; for Table \ref{vif.val.accur}, all but one value falls below 5, which is the highly-acceptable limit, and the last remaining value still falls below 10, which is the moderatly-acceptable limit. We are thus confident that variance inflation is not a particularly heavy factor in our model, and collinearity is not a significant problem.
 
 \section{Final Model(s) and Conclusions.}
+
+The following are the descriptions and linear regressions of our two final models:
+\begin{enumerate}
+\item \textbf{step.reduced.accur}:
+
+
+
+
+\item \textbf{model.3.assu}:
+
+
+
+\begin{align*}
+\hat{y} &= 0.0948 + -1.1201\cdot I(Twin = \text{TRUE}) + -1.4721\cdot I(Triplet = \text{TRUE}) + 0.1522\cdot I(Sex = \text{Male}) \\ &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot I(Black = \text{TRUE}) \\ &\quad + 0.1738\cdot \text{GainedSC} - 0.3343\cdot I(Smoke = \text{Yes}) - 0.3577\cdot I(Preemie = \text{Yes})
+\end{align*}
+\end{enumerate}
+
+
+
+\begin{enumerate}[a.]
+\item \textbf{Assess (and summarize) Model Diagnostics}\\
+We wrote a function to perform our assumptions on one of our final models, \textbf{step.reduced.accur}, and assessed the results below.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
@@ -1472,13 +1568,19 @@ In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are th
   \hlkwd{cbind}\hlstd{(}\hlkwd{vif}\hlstd{(model),} \hlkwd{vif}\hlstd{(model)[,}\hlnum{3}\hlstd{]}\hlopt{^}\hlnum{2}\hlstd{)}
   \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(model}\hlopt{$}\hlstd{residual))}
   \hlkwd{print}\hlstd{(}\hlkwd{confint}\hlstd{(model))}
+
+  \hlcom{#leverage points}
   \hlstd{lev} \hlkwb{<-} \hlstd{model}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{h.values} \hlstd{=} \hlkwd{hatvalues}\hlstd{(model))}
+  \hlcom{#high leverage points }
   \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(lev}\hlopt{$}\hlstd{h.values))}
   \hlstd{n} \hlkwb{<-} \hlkwd{nrow}\hlstd{(model}\hlopt{$}\hlstd{model)}
   \hlstd{high.lev} \hlkwb{<-} \hlstd{lev} \hlopt{%>%} \hlkwd{filter}\hlstd{(h.values} \hlopt{>} \hlnum{2}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n)}
   \hlkwd{print}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"High Lev.:"}\hlstd{,} \hlkwd{nrow}\hlstd{(high.lev)))}
+  \hlcom{#very high leverage points}
   \hlstd{v.high.lev} \hlkwb{<-} \hlstd{lev} \hlopt{%>%} \hlkwd{filter}\hlstd{(h.values} \hlopt{>} \hlnum{3}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n)}
   \hlkwd{print}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Very High Lev.:"}\hlstd{,} \hlkwd{nrow}\hlstd{(v.high.lev)))}
+
+  \hlcom{#Stud and Stand residual quantiles }
 
   \hlstd{new.resid} \hlkwb{<-} \hlstd{model}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{stdres} \hlstd{=} \hlkwd{rstandard}\hlstd{(model),}
                                       \hlkwc{stures} \hlstd{=} \hlkwd{rstudent}\hlstd{(model))}
@@ -1486,28 +1588,407 @@ In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are th
   \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(new.resid}\hlopt{$}\hlstd{stdres))}
   \hlkwd{print}\hlstd{(}\hlstr{"Studentized Residual Quant.:"}\hlstd{)}
   \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(new.resid}\hlopt{$}\hlstd{stures))}
+
+  \hlcom{#outliers}
   \hlstd{s.outliers.stdres} \hlkwb{<-} \hlstd{new.resid} \hlopt{%>%} \hlkwd{filter}\hlstd{(}\hlkwd{abs}\hlstd{(stdres)}\hlopt{>}\hlnum{3}\hlstd{)}
-  \hlkwd{print}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Strong Standard Residual Outliers:"}\hlstd{,} \hlkwd{nrow}\hlstd{(s.outliers.stdres)))}
+  \hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Strong Standard Residual Outliers:"}\hlstd{,} \hlkwd{nrow}\hlstd{(s.outliers.stdres)))}
   \hlkwd{print}\hlstd{(s.outliers.stdres)}
   \hlstd{s.outliers.stures} \hlkwb{<-} \hlstd{new.resid} \hlopt{%>%} \hlkwd{filter}\hlstd{(}\hlkwd{abs}\hlstd{(stures)}\hlopt{>}\hlnum{3}\hlstd{)}
   \hlkwd{print}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"String Studentized Residual Outliers:"}\hlstd{,} \hlkwd{nrow}\hlstd{(s.outliers.stures)))}
   \hlkwd{print}\hlstd{(s.outliers.stures)}
+
+  \hlcom{#Cooks Values}
   \hlstd{cooks.values} \hlkwb{<-} \hlstd{model}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{cooks} \hlstd{=} \hlkwd{cooks.distance}\hlstd{(model))}
   \hlkwd{print}\hlstd{(}\hlstr{"Cook's Values:"}\hlstd{)}
   \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(cooks.values}\hlopt{$}\hlstd{cooks))}
   \hlstd{cooks.strong} \hlkwb{<-} \hlstd{cooks.values} \hlopt{%>%} \hlkwd{filter}\hlstd{(cooks}\hlopt{>}\hlnum{1}\hlstd{)}
   \hlkwd{print}\hlstd{(}\hlkwd{paste}\hlstd{(}\hlstr{"Strong C. Values:"}\hlstd{,} \hlkwd{nrow}\hlstd{(cooks.strong)))}
 \hlstd{\}}
+\hlkwd{assessModel}\hlstd{(step.reduced.accur,} \hlnum{16}\hlstd{,} \hlstr{"WeightLogSC"}\hlstd{)}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\begin{enumerate}[i.]
+\item Independence and Representativeness \\
 
-\hlkwd{assessModel}\hlstd{(mod.accur.final)}
-\hlkwd{assessModel}\hlstd{(mod.accur.final.part)}
-\hlkwd{assessModel}\hlstd{(min.vif.model)}
+Our data comes from the Stat2Data library, and the data was pulled from a dataset originally collected by the North Carolina State Center for Health and Environmental Statistics. We could not find information on how the data was collected, however the dataset was created by statistician John Holcomb at Cleveland State University. Given that the data is in the Stat2Data library and was created by a statistician, we believe that the dataset must have been thoroughly vetted and must have met the requirements for independence and representativeness to be published. Though, we do know that the North Carolina State Center for Health and Environmental Statistics orginally collected the data from all 100 counties in North Carolina, as it is stated on their website. This information tells us that the data is at least somewhat randomized.
+
+\item Multicollinearity \\
+In the previous section we handled multicollinearity in this final model, and \ref{VIF Values} below verifies that all VIFs for all parameters are less than $\leq$ 5, indicating moderate multicollinearity within the model. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{xtable}\hlstd{(}\hlkwd{cbind}\hlstd{(}\hlkwd{vif}\hlstd{(step.reduced.accur),} \hlkwd{vif}\hlstd{(step.reduced.accur)[,}\hlnum{3}\hlstd{]}\hlopt{^}\hlnum{2}\hlstd{))}
+\end{alltt}
+\end{kframe}
+\end{knitrout}
+\begin{table}[H]
+\centering
+\begin{tabular}{rr}
+  \hline
+  Predictor & V4 \\ 
+  \hline
+  Plural & 3.17 \\ 
+  Sex & 1.01 \\ 
+  MomAge (SC) & 1.27 \\ 
+  Weeks (SC) & 4.02 \\ 
+  Black & 1.59 \\ 
+  Gained (SC) & 1.04 \\ 
+  Smoke & 1.34 \\ 
+  Premie & 4.95 \\ 
+  Plural:Weeks (SC) & 3.70 \\ 
+  MomAgeSC:Smoke & 1.24 \\ 
+  WeeksSC:Black & 3.51 \\ 
+  WeeksSC:Gained (SC) & 1.30 \\ 
+  WeeksSC:Smoke & 1.40 \\ 
+  WeeksSC:Premie & 7.91 \\ 
+  Black:Smoke & 1.44 \\ 
+  Black:Premie & 3.64 \\ 
+   \hline
+\end{tabular}
+\label{VIF Values}
+\caption{VIF values for predictors in our final model.}
+\end{table}
+
+\item Constant Variance/Normality of Errors\\
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{plotResiduals}\hlstd{(step.reduced.accur)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
 
+\begin{figure}[H]
+\centering
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-34-1} 
+\end{knitrout}
+\caption{The residuals for our final model.}
+\label{step.reduced.accur.residuals}
+\end{figure}
+\ref{step.reduced.accur.residuals}: A figure of some diagnostic plots for the linear model where Y is birth weights and the predictors are Plural, Sex, MomAgeSC, WeeksSC, Black, GainedSC, Smoke, Premie, Plural:WeeksSC, MomAgeSC:Smoke, WeeksSC:Black, WeeksSC:GainedSC, WeeksSC:Smoke, WeeksSC:Premie, Black:Smoke, and Black:Premie.
 
-Highest Accuracy Model:
+As seen in \ref{step.reduced.accur.residuals}, the constant variance assumption is met for the most part and the normality assumption is met. 
+\end{enumerate}
+
+\item{\textbf{Influence analysis}}
+\begin{enumerate}[i.]
+\item Leverage Points \\
+
+From our Exploratory Analysis, we already knew that we had some outline instances. This section will help us determine if any of those outliers are actually significant.
+
+Our function first calculated 191 high leverage values and 100 very high leverage values. They were distributed in the dataset as follows:
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlstd{p} \hlkwb{<-} \hlnum{18}
+  \hlcom{#leverage points}
+  \hlstd{lev} \hlkwb{<-} \hlstd{step.reduced.accur}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{h.values} \hlstd{=} \hlkwd{hatvalues}\hlstd{(step.reduced.accur))}
+  \hlcom{#high leverage points }
+  \hlkwd{print}\hlstd{(}\hlkwd{summary}\hlstd{(lev}\hlopt{$}\hlstd{h.values))}
+\end{alltt}
+\begin{verbatim}
+##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+## 0.001977 0.003557 0.006024 0.013485 0.012288 0.942679
+\end{verbatim}
+\begin{alltt}
+  \hlstd{n} \hlkwb{<-} \hlkwd{nrow}\hlstd{(model}\hlopt{$}\hlstd{model)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in nrow(model\$model): object 'model' not found}}\begin{alltt}
+  \hlstd{high.lev} \hlkwb{<-} \hlstd{lev} \hlopt{%>%} \hlkwd{filter}\hlstd{(h.values} \hlopt{>} \hlnum{2}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in `filter()`:\\\#\# ! Problem while computing `..1 = h.values > 2 * p/n`.\\\#\# Caused by error in `2 * p / n`:\\\#\# ! non-numeric argument to binary operator}}\begin{alltt}
+  \hlcom{#very high leverage points}
+  \hlstd{v.high.lev} \hlkwb{<-} \hlstd{lev} \hlopt{%>%} \hlkwd{filter}\hlstd{(h.values} \hlopt{>} \hlnum{3}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n)}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in `filter()`:\\\#\# ! Problem while computing `..1 = h.values > 3 * p/n`.\\\#\# Caused by error in `3 * p / n`:\\\#\# ! non-numeric argument to binary operator}}\begin{alltt}
+  \hlstd{lev} \hlkwb{<-} \hlstd{lev} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{Level} \hlstd{=} \hlkwd{case_when}\hlstd{(h.values} \hlopt{<}\hlnum{2}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n} \hlopt{~} \hlstr{"Normal"}\hlstd{,}
+                                          \hlstd{h.values} \hlopt{<} \hlnum{3}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n} \hlopt{~} \hlstr{"High"}\hlstd{,}
+                                          \hlstd{T} \hlopt{~} \hlstr{"Very High"}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in `mutate()`:\\\#\# ! Problem while computing `Level = case\_when(...)`.\\\#\# Caused by error in `2 * p / n`:\\\#\# ! non-numeric argument to binary operator}}\begin{alltt}
+  \hlstd{lev} \hlopt{%>%} \hlkwd{ggplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{as.numeric}\hlstd{(}\hlkwd{row.names}\hlstd{(.)),} \hlkwc{y}\hlstd{=h.values,} \hlkwc{color}\hlstd{=Level))} \hlopt{+}
+    \hlkwd{geom_point}\hlstd{()} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{3}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color} \hlstd{=} \hlstr{"red"}\hlstd{)} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{2}\hlopt{*}\hlstd{p}\hlopt{/}\hlstd{n,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color}\hlstd{=} \hlstr{"blue"}\hlstd{)} \hlopt{+}
+    \hlkwd{scale_y_continuous}\hlstd{(}\hlkwc{trans}\hlstd{=}\hlstr{'log2'}\hlstd{)} \hlopt{+}
+    \hlkwd{ylab}\hlstd{(}\hlstr{"H-Value (Logarithmic Scale)"}\hlstd{)} \hlopt{+}
+    \hlkwd{xlab}\hlstd{(}\hlstr{"Index"}\hlstd{)} \hlopt{+}
+    \hlkwd{ggtitle}\hlstd{(}\hlstr{"H-Value Distribution"}\hlstd{)} \hlopt{+}
+    \hlkwd{theme_bw}\hlstd{()}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in 3 * p/n: non-numeric argument to binary operator}}\end{kframe}
+\end{knitrout}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  0.001977 & 0.003557 & 0.006024 & 0.013485 & 0.012288 & 0.942679 \\
+   \hline
+\end{tabular}
+\label{High Leverage Values Quantile Summary}
+\caption{High Leverage Values Quantile Summary.}
+\end{table}
+
+
+\item Standardized/Studentized Residuals\\
+Next, our function output the summaries of the Standardized/Studentized Residuals and the outliers of our dataset. \\
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  -7.313842 & -0.546892 & 0.022207 & -0.000838 & 0.642574 & 4.483741 \\
+   \hline
+\end{tabular}
+\label{Standardized Residuals Quantile Summary}
+\caption{Standardized Residuals Quantile Summary.}
+\end{table}
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+    \hlstd{new.resid} \hlkwb{<-} \hlstd{step.reduced.accur}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{stdres} \hlstd{=} \hlkwd{rstandard}\hlstd{(step.reduced.accur),}
+                                      \hlkwc{stures} \hlstd{=} \hlkwd{rstudent}\hlstd{(step.reduced.accur))}
+
+    \hlcom{#outliers}
+  \hlstd{s.outliers.stdres} \hlkwb{<-} \hlstd{new.resid} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{stdres_level} \hlstd{=} \hlkwd{case_when} \hlstd{(}\hlkwd{abs}\hlstd{(stdres)}\hlopt{>}\hlnum{3} \hlopt{~} \hlstr{"High"}\hlstd{, T} \hlopt{~} \hlstr{"Low"}\hlstd{))}
+  \hlstd{s.outliers.stures} \hlkwb{<-} \hlstd{new.resid} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{stures_level} \hlstd{=} \hlkwd{case_when} \hlstd{(}\hlkwd{abs}\hlstd{(stures)}\hlopt{>}\hlnum{3} \hlopt{~} \hlstr{"High"}\hlstd{, T} \hlopt{~} \hlstr{"Low"}\hlstd{))}
+
+  \hlstd{s.outliers.stdres} \hlopt{%>%} \hlkwd{ggplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{as.numeric}\hlstd{(}\hlkwd{row.names}\hlstd{(.)),} \hlkwc{y}\hlstd{=stdres,} \hlkwc{color}\hlstd{=stdres_level))} \hlopt{+}
+    \hlkwd{geom_point}\hlstd{()} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color} \hlstd{=} \hlstr{"red"}\hlstd{)} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlopt{-}\hlnum{3}\hlstd{,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color}\hlstd{=} \hlstr{"blue"}\hlstd{)} \hlopt{+}
+    \hlkwd{ylab}\hlstd{(}\hlstr{"Standardized Residuals"}\hlstd{)} \hlopt{+}
+    \hlkwd{xlab}\hlstd{(}\hlstr{"Index"}\hlstd{)} \hlopt{+}
+    \hlkwd{ggtitle}\hlstd{(}\hlstr{"Standardized Residual Distribution"}\hlstd{)} \hlopt{+}
+    \hlkwd{theme_bw}\hlstd{()}  \hlkwb{->} \hlstd{stdres_plot}
+
+  \hlstd{s.outliers.stures} \hlopt{%>%} \hlkwd{ggplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{as.numeric}\hlstd{(}\hlkwd{row.names}\hlstd{(.)),} \hlkwc{y}\hlstd{=stures,} \hlkwc{color}\hlstd{=stures_level))} \hlopt{+}
+    \hlkwd{geom_point}\hlstd{()} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{3}\hlstd{,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color} \hlstd{=} \hlstr{"red"}\hlstd{)} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlopt{-}\hlnum{3}\hlstd{,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color}\hlstd{=} \hlstr{"blue"}\hlstd{)} \hlopt{+}
+    \hlkwd{ylab}\hlstd{(}\hlstr{"Studentized Residuals"}\hlstd{)} \hlopt{+}
+    \hlkwd{xlab}\hlstd{(}\hlstr{"Index"}\hlstd{)} \hlopt{+}
+    \hlkwd{ggtitle}\hlstd{(}\hlstr{"Studentized Residual Distribution"}\hlstd{)} \hlopt{+}
+    \hlkwd{theme_bw}\hlstd{()}  \hlkwb{->} \hlstd{stures_plot}
+
+  \hlstd{stdres_plot} \hlopt{+} \hlstd{stures_plot}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-36-1} 
+\end{knitrout}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  -7.456087 & -0.546754 & 0.022199 & -0.001093 &  0.642438 & 4.514897 \\
+   \hline
+\end{tabular}
+\label{Studentized Residuals Quantile Summary}
+\caption{Studentized Residuals Quantile Summary.}
+\end{table}
+
+\item Outliers\\
+
+From our previous calculation of the high leverage values, we found 17 outlier instances in our dataset that fell outside the expected departures from our residual curve. They are listed in the table below:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrrrrr}
+  \hline
+   WeightLog (SC) & Plural & Sex & MomAge (SC) & Weeks (SC) Black & Gained (SC) & Smoke & Premie \\ 
+  \hline
+  -1.79825625 & 1 & Male & -0.94445468 & -0.2301192 & FALSE & -0.7639289 & No & No\\
+  -2.02393397 & 1 &  Male & -0.94445468 & 0.5108647 & FALSE & -1.0521654 & Yes &  No \\
+  -2.14180198 & 1 & Female & -0.94445468 & 0.5108647 & FALSE & -1.8448158 & No & No \\
+  -1.90948290 & 1 & Female & -0.28842628  & 1.6223405 & FALSE & -0.9080472 & Yes & No \\ 
+  -1.09672028 & 1 &  Male & -1.27246888 & -2.8235628 &  FALSE & -1.4845202 & No & Yes\\
+  -5.38870953 & 1 & Male & -0.94445468 & -3.5645467 & FALSE  & 0.1728397 & No & Yes\\
+  -3.56718564 & 1 &  Male & 0.03958792 & -2.4530708 & FALSE & 1.0375492 & No & Yes\\
+  -4.53499902 & 1 & Male & 0.20359502 & -1.7120870 & FALSE & -0.7639289 & Yes & Yes\\
+  -6.66311095 & 1 & Male & -0.78044758 & -3.9350386 & FALSE & -0.7639289 & No & Yes\\
+  -5.25485653 & 1 & Female & -1.43647598 & -1.3415950 & FALSE & -0.8359881 & No & Yes\\
+  -7.73678282 & 1 & Male & -1.27246888 &-4.3055305 & TRUE & -1.4124611  & No & Yes\\
+  -8.87263370 & 2 & Female & -1.10846178 & -6.1579902 & TRUE & 0.6772536 & No & Yes\\
+  -2.26329727 & 1 & Male & -0.45243338 & -0.6006112 & TRUE & 0.1728397 & No & No\\
+  -4.02151218 & 1 & Female & -1.43647598 & -4.6760225 & TRUE & -1.4845202 & No & Yes\\
+   0.08477603 & 1 & Female & 0.53160922 & -2.4530708 & TRUE & 0.8934309 & Yes & Yes\\
+  -0.01867841 & 1 & Male & 0.69561632 & -2.8235628 & TRUE & -0.3315742 & No & Yes\\
+  -1.43192750 & 1 & Male & -0.45243338 & 0.1403727 & FALSE & 0.8213718 & No & No\\
+   \hline
+\end{tabular}
+\label{}
+\caption{Outliers that are outside the expected departure.}
+\end{table}
+
+
+\item Influential Observations\\
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Min. & 1st Qu. &  Median &  Mean  & 3rd Qu. &  Max \\ 
+  \hline
+  0.0000000 & 0.0000240 & 0.0001095 & 0.0014421 & 0.0004313 & 0.4464716 \\
+   \hline
+\end{tabular}
+\label{Cook's test Quantile Summary}
+\caption{Cook's test Quantile Summary.}
+\end{table}
+\end{enumerate}
+
+After calculating Cook's distane, we found that there were no instances with values greater than 1, and thus no influential observations in the dataset. 
+
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+  \hlstd{cooks.values} \hlkwb{<-} \hlstd{step.reduced.accur}\hlopt{$}\hlstd{model} \hlopt{%>%} \hlkwd{mutate}\hlstd{(}\hlkwc{Cooks} \hlstd{=} \hlkwd{cooks.distance}\hlstd{(step.reduced.accur))}
+  \hlstd{cooks.values} \hlopt{%>%} \hlkwd{ggplot}\hlstd{(}\hlkwd{aes}\hlstd{(}\hlkwc{x}\hlstd{=}\hlkwd{as.numeric}\hlstd{(}\hlkwd{row.names}\hlstd{(.)),} \hlkwc{y}\hlstd{=Cooks,} \hlkwc{color}\hlstd{=T))} \hlopt{+}
+    \hlkwd{geom_point}\hlstd{()} \hlopt{+}
+    \hlkwd{geom_hline}\hlstd{(}\hlkwc{yintercept}\hlstd{=}\hlnum{1}\hlstd{,} \hlkwc{linetype}\hlstd{=}\hlstr{"dashed"}\hlstd{,} \hlkwc{color} \hlstd{=} \hlstr{"red"}\hlstd{)} \hlopt{+}
+    \hlkwd{ylab}\hlstd{(}\hlstr{"Cook's Distance"}\hlstd{)} \hlopt{+}
+    \hlkwd{xlab}\hlstd{(}\hlstr{"Index"}\hlstd{)} \hlopt{+}
+    \hlkwd{ggtitle}\hlstd{(}\hlstr{"Cook's Distance Distribution"}\hlstd{)} \hlopt{+}
+    \hlkwd{theme_bw}\hlstd{()}  \hlkwb{->} \hlstd{cooks_plot}
+
+  \hlstd{cooks_plot}
+\end{alltt}
+\end{kframe}
+\includegraphics[width=\maxwidth]{figure/unnamed-chunk-37-1} 
+\end{knitrout}
+
+\item{\textbf{Summarize the findings of your final models}}
+\begin{enumerate}[i.]
+\item Fitted Model
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{xtable}\hlstd{(}\hlkwd{round}\hlstd{(}\hlkwd{summary}\hlstd{(step.reduced.accur)}\hlopt{$}\hlstd{coefficients,}\hlnum{4}\hlstd{))}
+\end{alltt}
+\begin{verbatim}
+## % latex table generated in R 4.2.1 by xtable 1.8-4 package
+## % Thu Dec  8 03:34:49 2022
+## \begin{table}[ht]
+## \centering
+## \begin{tabular}{rrrrr}
+##   \hline
+##  & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+##   \hline
+## (Intercept) & 0.18 & 0.03 & 6.49 & 0.00 \\ 
+##   TwinTRUE & -1.23 & 0.14 & -8.97 & 0.00 \\ 
+##   TripletTRUE & -1.03 & 0.63 & -1.64 & 0.10 \\ 
+##   SexMale & 0.11 & 0.03 & 3.51 & 0.00 \\ 
+##   MomAgeSC & 0.09 & 0.02 & 5.14 & 0.00 \\ 
+##   WeeksSC & 0.17 & 0.03 & 5.26 & 0.00 \\ 
+##   BlackTRUE & -0.22 & 0.05 & -4.66 & 0.00 \\ 
+##   GainedSC & 0.12 & 0.02 & 7.80 & 0.00 \\ 
+##   SmokeYes & -0.27 & 0.05 & -5.22 & 0.00 \\ 
+##   PreemieYes & 0.85 & 0.10 & 8.10 & 0.00 \\ 
+##   TwinTRUE:WeeksSC & -0.30 & 0.07 & -4.25 & 0.00 \\ 
+##   TripletTRUE:WeeksSC & -0.10 & 0.21 & -0.46 & 0.65 \\ 
+##   MomAgeSC:SmokeYes & -0.10 & 0.05 & -2.16 & 0.03 \\ 
+##   WeeksSC:BlackTRUE & 0.16 & 0.05 & 3.05 & 0.00 \\ 
+##   WeeksSC:GainedSC & -0.04 & 0.02 & -2.50 & 0.01 \\ 
+##   WeeksSC:SmokeYes & -0.15 & 0.04 & -3.56 & 0.00 \\ 
+##   WeeksSC:PreemieYes & 1.11 & 0.06 & 18.45 & 0.00 \\ 
+##   BlackTRUE:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
+##   BlackTRUE:PreemieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
+##    \hline
+## \end{tabular}
+## \end{table}
+\end{verbatim}
+\end{kframe}
+\end{knitrout}
+
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 0.18 & 0.03 & 6.49 & 0.00 \\ 
+  Twin & -1.23 & 0.14 & -8.97 & 0.00 \\ 
+  Triplet & -1.03 & 0.63 & -1.64 & 0.10 \\ 
+  Male & 0.11 & 0.03 & 3.51 & 0.00 \\ 
+  MomAge (SC) & 0.09 & 0.02 & 5.14 & 0.00 \\ 
+  Weeks (SC) & 0.17 & 0.03 & 5.26 & 0.00 \\ 
+  Black & -0.22 & 0.05 & -4.66 & 0.00 \\ 
+  Gained (SC) & 0.12 & 0.02 & 7.80 & 0.00 \\ 
+  SmokeYes & -0.27 & 0.05 & -5.22 & 0.00 \\ 
+  PremieYes & 0.85 & 0.10 & 8.10 & 0.00 \\ 
+  Twin:Weeks (SC) & -0.30 & 0.07 & -4.25 & 0.00 \\ 
+  Triplet:Weeks (SC) & -0.10 & 0.21 & -0.46 & 0.65 \\ 
+  MomAgeSC:SmokeYes & -0.10 & 0.05 & -2.16 & 0.03 \\ 
+  WeeksSC:Black & 0.16 & 0.05 & 3.05 & 0.00 \\ 
+  WeeksSC:Gained (SC) & -0.04 & 0.02 & -2.50 & 0.01 \\ 
+  WeeksSC:SmokeYes & -0.15 & 0.04 & -3.56 & 0.00 \\ 
+  WeeksSC:PremieYes & 1.11 & 0.06 & 18.45 & 0.00 \\ 
+  Black:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
+  Black:PremieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\item Confidence intervals for partial slope parameters
+\begin{knitrout}
+\definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
+\begin{alltt}
+\hlkwd{xtable}\hlstd{(confint2000}\hlkwb{<-}\hlkwd{confint}\hlstd{(model.3.assu,} \hlkwc{level}\hlstd{=}\hlnum{0.95}\hlstd{))}
+\end{alltt}
+
+
+{\ttfamily\noindent\bfseries\color{errorcolor}{\#\# Error in confint(model.3.assu, level = 0.95): object 'model.3.assu' not found}}\end{kframe}
+\end{knitrout}
+\begin{table}[H]
+\centering
+\begin{tabular}{rrr}
+  \hline
+ & 2.5 \% & 97.5 \% \\ 
+  \hline
+(Intercept) & 0.03 & 0.16 \\ 
+  Twin & -1.36 & -0.88 \\ 
+  Triplet & -2.21 & -0.73 \\ 
+  Male & 0.07 & 0.23 \\ 
+  MomAge (SC) & 0.08 & 0.16 \\ 
+  Weeks (SC) & 0.36 & 0.48 \\ 
+  Black & -0.29 & -0.10 \\ 
+  Gained (SC) & 0.13 & 0.21 \\ 
+  SmokeYes & -0.45 & -0.22 \\ 
+  PremieYes & -0.52 & -0.19 \\ 
+   \hline
+\end{tabular}
+\end{table}
+
+\end{enumerate}
+
+\end{enumerate}
+
+Highest Accuracy Model: -> mod.accur.prelim.full 
 \begin{align*}
 \hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \\
 &\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
@@ -1515,7 +1996,7 @@ Highest Accuracy Model:
 &\quad + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
 
-Non-Interact Assumptions Model
+Non-Interact Assumptions Model -> model.3.assu
 \begin{align*}
 \hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \\
 &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\

@@ -26,7 +26,7 @@
 
 \vspace{.3cm}
 
-\textbf{Name: } 
+\textbf{Name: } Marissa Patel \& Michael Peeler 
 
 \vspace{.3cm}
 
@@ -58,7 +58,7 @@ NCbirths contains data from births in North Carolina in 2001, with 1450 observat
 
 <<>>=
 prepData <- function() {
-  births <- read_csv("~/Downloads/NCbirths.csv") 
+  births <- read_csv("~/GitHub/Mth245Final/dataset/NCbirths.csv") 
 
   births <- births %>% mutate(Sex = case_when(Sex == 1 ~ "Male",
                                               Sex == 2 ~ "Female"),
@@ -120,7 +120,6 @@ prepData <- function() {
 
 }
   
-
 births <- prepData()
 @
 
@@ -291,6 +290,7 @@ boot.ci(boot.medians, conf = 0.95)
 The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our CI = $(3316.95, 3373.65)$ contained our median birth weight, and the lower bound aligned with the World Health Organization's statistic of 3,300 grams. We determined that the premature instances were not as influential as we suspected, and we continued without additional changes to the dataset. 
 
 \item\textbf{Numerically summarize the variables in your dataset.}
+<<>>=
 #add in weeks 
 (sumstats <- births %>% summarize(meanW=mean(BirthWeightGm),
                                  medianW = median(BirthWeightGm),
@@ -310,7 +310,7 @@ The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our C
 xtable(sumstats)
 @
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrr}
   \hline
@@ -327,7 +327,7 @@ xtable(sumstats)
 
 One of our initial assumptions pertained to the race of the mother, so we wanted to visualize this categorical variable with preemie, another categorical variable. The bar chart below shows the percentage of race that corresponds to the number of premature and not premature babies. 
 
-\includegraphics{/Users/marissapatel/Downloads/RacePremiePercent.jpeg}
+\includegraphics{./RacePremiePercent.jpg}
 
  We can see that white has the highest percentages for both preemies and non-preemies, however this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. 
 
@@ -467,7 +467,7 @@ modelSummary(model.1, plot=FALSE)
 xtable(model.1, caption="Predictor Statistics and Significance for First-Order Model", label="First.Order.Table")
 @
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrrrr}
   \hline
@@ -518,7 +518,7 @@ lm(WeightGmInverse ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
 
 Before eliminating the non-significant variables from our model we wanted to test transformations of BirthWeight, to see if any of them improved our model performance statistics or residual distributions. The model statistics for each transformation are listed in Table \ref{tab.com.transform}. 
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrrrr}
   \hline
@@ -615,7 +615,7 @@ model.3.assu <- lm(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Blac
                     births)
 xtable(model.3.assu, caption="Predictor Statistics and Significance for Pruned First-Order Non-Transformed Model", label="pruned.first.model.un")
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -680,7 +680,7 @@ model.3.accur <- lm(WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Bl
 
 xtable(model.3.accur, caption="Predictor Statistics and Significance for Pruned First-Order Log-Transformed Model", label="pruned.first.model.log")
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -735,7 +735,7 @@ rbind(model.cval.LOO.accur$results,
   select(Method, RMSE, Rsquared, MAE) %>% 
   xtable(caption="Comparison of Cross-Validation Techniques on Logarithmic Model", label="cross.val.log")
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -750,7 +750,7 @@ rbind(model.cval.LOO.accur$results,
 \label{cross.val.log}
 \end{table}
 
-<<>>=
+<<results=FALSE>>=
 specs <- trainControl(method="LOOCV")
 model.cval.LOO.assu <- train(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
                       GainedSC + Smoke + Preemie, data=births,
@@ -777,7 +777,7 @@ rbind(model.cval.LOO.assu$results,
 
 @
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -822,7 +822,7 @@ predictForSubsets(model.3.accur, "WeightLogSC",
 
 As Figures \ref{resid.3.un} and \ref{resid.3.log} demonstrate, both model tend to have higher residual departures for premature births than they do for the dataset as a whole or for the subset of non-premature births. This is also reflected in the MAE values, as seen in Table \ref{subset.comp}, where the premature birth subset is always lower than the non-premature birth or the full dataset. However, Table \ref{subset.comp} also shows that premature births also have a much higher correlation with the predicted values from the model, meaning that in some sense they are both more predictive of the general trends in premature birth weights than of non-premature birth weights. Further, the logarithmic model is much better at predicting births that are at the higher ends of the weight range than at the lower end of the range, while the non-transformed model is more consistent across weight ranges. 
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrrr}
   \hline
@@ -848,7 +848,7 @@ model.interact.accur <- lm(WeightLogSC ~ (Plural + Sex + MomAgeSC + WeeksSC + Bl
 
 xtable(model.interact.accur, caption="Predictor Statistics and Significance for Log-Transformed Interaction Model", label="interact.model.log")
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -920,7 +920,7 @@ step.reduced.accur <- lm(formula = WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC
                   Black:Smoke + Black:Preemie, data = births)
 xtable(step.reduced.accur, caption="Predictor Statistics and Significance for Log-Transformed Pruned Interaction Model", label="interact.model.log.prune")
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
@@ -985,7 +985,7 @@ rbind(model.cval.LOO$results,
   xtable(caption="Comparison of Cross-Validation Techniques on Logarithmic Model", label="cross.val.log")
 @
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{lrrr}
   \hline
@@ -1040,7 +1040,7 @@ accur.vif %>%  xtable(caption="VIF Values for Pruned Logarithmic Interaction Reg
                     label="vif.val.accur")
 @
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rr}
   \hline
@@ -1061,7 +1061,7 @@ Twin & 1.13 \\
 \label{vif.val.assu}
 \end{table}
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rr}
   \hline
@@ -1094,6 +1094,28 @@ Twin & 2.24 \\
 In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are thus very acceptable; for Table \ref{vif.val.accur}, all but one value falls below 5, which is the highly-acceptable limit, and the last remaining value still falls below 10, which is the moderatly-acceptable limit. We are thus confident that variance inflation is not a particularly heavy factor in our model, and collinearity is not a significant problem.
 
 \section{Final Model(s) and Conclusions.}
+
+The following are the descriptions and linear regressions of our two final models:
+\begin{enumerate}
+\item \textbf{step.reduced.accur}:
+
+
+
+
+\item \textbf{model.3.assu}:
+
+
+
+\begin{align*}
+\hat{y} &= 0.0948 + -1.1201\cdot I(Twin = \text{TRUE}) + -1.4721\cdot I(Triplet = \text{TRUE}) + 0.1522\cdot I(Sex = \text{Male}) \\ &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot I(Black = \text{TRUE}) \\ &\quad + 0.1738\cdot \text{GainedSC} - 0.3343\cdot I(Smoke = \text{Yes}) - 0.3577\cdot I(Preemie = \text{Yes})
+\end{align*}
+\end{enumerate}
+
+
+
+\begin{enumerate}[a.]
+\item \textbf{Assess (and summarize) Model Diagnostics}\\
+We wrote a function to perform our assumptions on one of our final models, \textbf{step.reduced.accur}, and assessed the results below.
 <<eval=FALSE>>=
 assessModel <- function(model, p) {
   print(modelSummary(model, plots=F))
@@ -1136,7 +1158,7 @@ assessModel <- function(model, p) {
   cooks.strong <- cooks.values %>% filter(cooks>1)
   print(paste("Strong C. Values:", nrow(cooks.strong)))
 }
-assessModel(mod.accur.prelim.full, 16, "WeightLogSC")
+assessModel(step.reduced.accur, 16, "WeightLogSC")
 @
 \begin{enumerate}[i.]
 \item Independence and Representativeness \\
@@ -1146,10 +1168,10 @@ Our data comes from the Stat2Data library, and the data was pulled from a datase
 \item Multicollinearity \\
 In the previous section we handled multicollinearity in this final model, and \ref{VIF Values} below verifies that all VIFs for all parameters are less than $\leq$ 5, indicating moderate multicollinearity within the model. 
 
-<<mod.accur.prelim.full.vif, eval=FALSE, echo=TRUE>>=
-xtable(cbind(vif(mod.accur.prelim.full), vif(mod.accur.prelim.full)[,3]^2))
+<<step.reduced.accur.vif, eval=FALSE, echo=TRUE>>=
+xtable(cbind(vif(step.reduced.accur), vif(step.reduced.accur)[,3]^2))
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rr}
   \hline
@@ -1157,16 +1179,16 @@ xtable(cbind(vif(mod.accur.prelim.full), vif(mod.accur.prelim.full)[,3]^2))
   \hline
   Plural & 3.17 \\ 
   Sex & 1.01 \\ 
-  MomAgeSC & 1.27 \\ 
-  WeeksSC & 4.02 \\ 
+  MomAge (SC) & 1.27 \\ 
+  Weeks (SC) & 4.02 \\ 
   Black & 1.59 \\ 
-  GainedSC & 1.04 \\ 
+  Gained (SC) & 1.04 \\ 
   Smoke & 1.34 \\ 
   Premie & 4.95 \\ 
-  Plural:WeeksSC & 3.70 \\ 
+  Plural:Weeks (SC) & 3.70 \\ 
   MomAgeSC:Smoke & 1.24 \\ 
   WeeksSC:Black & 3.51 \\ 
-  WeeksSC:GainedSC & 1.30 \\ 
+  WeeksSC:Gained (SC) & 1.30 \\ 
   WeeksSC:Smoke & 1.40 \\ 
   WeeksSC:Premie & 7.91 \\ 
   Black:Smoke & 1.44 \\ 
@@ -1178,32 +1200,60 @@ xtable(cbind(vif(mod.accur.prelim.full), vif(mod.accur.prelim.full)[,3]^2))
 \end{table}
 
 \item Constant Variance/Normality of Errors\\
-<<mod.accur.prelim.full.residuals, eval=FALSE, echo=TRUE>>=
-plotResiduals(mod.accur.prelim.full)
+<<step.reduced.accur.residuals, eval=FALSE, echo=TRUE>>=
+plotResiduals(step.reduced.accur)
 @
 
 \begin{figure}[H]
 \centering
 <<echo=FALSE, fig.dim=c(8,7)>>=
-<<mod.accur.prelim.full.residuals>>
+<<step.reduced.accur.residuals>>
 @
 \caption{The residuals for our final model.}
-\label{mod.accur.prelim.full.residuals}
+\label{step.reduced.accur.residuals}
 \end{figure}
-\ref{mod.accur.prelim.full.residuals}: A figure of some diagnostic plots for the linear model where Y is birth weights and the predictors are Plural, Sex, MomAgeSC, WeeksSC, Black, GainedSC, Smoke, Premie, Plural:WeeksSC, MomAgeSC:Smoke, WeeksSC:Black, WeeksSC:GainedSC, WeeksSC:Smoke, WeeksSC:Premie, Black:Smoke, and Black:Premie.
+\ref{step.reduced.accur.residuals}: A figure of some diagnostic plots for the linear model where Y is birth weights and the predictors are Plural, Sex, MomAgeSC, WeeksSC, Black, GainedSC, Smoke, Premie, Plural:WeeksSC, MomAgeSC:Smoke, WeeksSC:Black, WeeksSC:GainedSC, WeeksSC:Smoke, WeeksSC:Premie, Black:Smoke, and Black:Premie.
 
-As seen in \ref{mod.accur.prelim.full.residuals}, the constant variance assumption is met for the most part and the normality assumption is met. 
+As seen in \ref{step.reduced.accur.residuals}, the constant variance assumption is met for the most part and the normality assumption is met. 
 \end{enumerate}
 
-\item \textbf{Influence analysis}
+\item{\textbf{Influence analysis}}
 \begin{enumerate}[i.]
 \item Leverage Points \\
 
-From our Exploratory Analysis, we already knew that we had some outlier instances. This section will help us determine if any of those outliers are actually significant.
+From our Exploratory Analysis, we already knew that we had some outline instances. This section will help us determine if any of those outliers are actually significant.
 
-Our function first calculated 191 high leverage values 191. Then it calculated 100 very high leverage values. 
+Our function first calculated 191 high leverage values and 100 very high leverage values. They were distributed in the dataset as follows:
 
-\begin{table}[ht]
+<<>>=
+  p <- 18 
+  #leverage points
+  lev <- step.reduced.accur$model %>% mutate(h.values = hatvalues(step.reduced.accur))
+  #high leverage points 
+  print(summary(lev$h.values))
+  n <- nrow(model$model)
+  
+  high.lev <- lev %>% filter(h.values > 2*p/n)
+  #very high leverage points
+  v.high.lev <- lev %>% filter(h.values > 3*p/n)
+  
+  lev <- lev %>% mutate(Level = case_when(h.values <2*p/n ~ "Normal",
+                                          h.values < 3*p/n ~ "High",
+                                          T ~ "Very High"))
+  
+  lev %>% ggplot(aes(x=as.numeric(row.names(.)), y=h.values, color=Level)) +
+    geom_point() +
+    geom_hline(yintercept=3*p/n, linetype="dashed", color = "red") +
+    geom_hline(yintercept=2*p/n, linetype="dashed", color= "blue") +
+    scale_y_continuous(trans='log2') +
+    ylab("H-Value (Logarithmic Scale)") + 
+    xlab("Index") +
+    ggtitle("H-Value Distribution") +
+    theme_bw()
+
+@
+
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrrr}
   \hline
@@ -1220,7 +1270,7 @@ Our function first calculated 191 high leverage values 191. Then it calculated 1
 \item Standardized/Studentized Residuals\\
 Next, our function output the summaries of the Standardized/Studentized Residuals and the outliers of our dataset. \\
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrrr}
   \hline
@@ -1233,8 +1283,37 @@ Next, our function output the summaries of the Standardized/Studentized Residual
 \caption{Standardized Residuals Quantile Summary.}
 \end{table}
 
+<<>>=
+    new.resid <- step.reduced.accur$model %>% mutate(stdres = rstandard(step.reduced.accur),
+                                      stures = rstudent(step.reduced.accur))
+  
+    #outliers
+  s.outliers.stdres <- new.resid %>% mutate(stdres_level = case_when (abs(stdres)>3 ~ "High", T ~ "Low"))
+  s.outliers.stures <- new.resid %>% mutate(stures_level = case_when (abs(stures)>3 ~ "High", T ~ "Low"))
 
-\begin{table}[ht]
+  s.outliers.stdres %>% ggplot(aes(x=as.numeric(row.names(.)), y=stdres, color=stdres_level)) +
+    geom_point() +
+    geom_hline(yintercept=3, linetype="dashed", color = "red") +
+    geom_hline(yintercept=-3, linetype="dashed", color= "blue") +
+    ylab("Standardized Residuals") + 
+    xlab("Index") +
+    ggtitle("Standardized Residual Distribution") +
+    theme_bw()  -> stdres_plot
+  
+  s.outliers.stures %>% ggplot(aes(x=as.numeric(row.names(.)), y=stures, color=stures_level)) +
+    geom_point() +
+    geom_hline(yintercept=3, linetype="dashed", color = "red") +
+    geom_hline(yintercept=-3, linetype="dashed", color= "blue") +
+    ylab("Studentized Residuals") + 
+    xlab("Index") +
+    ggtitle("Studentized Residual Distribution") +
+    theme_bw()  -> stures_plot
+  
+  stdres_plot + stures_plot
+@
+
+
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrrr}
   \hline
@@ -1251,11 +1330,11 @@ Next, our function output the summaries of the Standardized/Studentized Residual
 
 From our previous calculation of the high leverage values, we found 17 outlier instances in our dataset that fell outside the expected departures from our residual curve. They are listed in the table below:
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrrrrrr}
   \hline
-   WeightLogSC & Plural & Sex & MomAgeSC & WeeksSC Black & GainedSC & Smoke & Premie \\ 
+   WeightLog (SC) & Plural & Sex & MomAge (SC) & Weeks (SC) Black & Gained (SC) & Smoke & Premie \\ 
   \hline
   -1.79825625 & 1 & Male & -0.94445468 & -0.2301192 & FALSE & -0.7639289 & No & No\\
   -2.02393397 & 1 &  Male & -0.94445468 & 0.5108647 & FALSE & -1.0521654 & Yes &  No \\
@@ -1282,7 +1361,7 @@ From our previous calculation of the high leverage values, we found 17 outlier i
 
 
 \item Influential Observations\\
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrrr}
   \hline
@@ -1296,63 +1375,78 @@ From our previous calculation of the high leverage values, we found 17 outlier i
 \end{table}
 \end{enumerate}
 
-Our function ran Cook's test and found that there are no influential observations in the dataset. 
+After calculating Cook's distane, we found that there were no instances with values greater than 1, and thus no influential observations in the dataset. 
 
-\item \textbf{Summarize the findings of your final models}
+<<>>=
+  cooks.values <- step.reduced.accur$model %>% mutate(Cooks = cooks.distance(step.reduced.accur))
+  cooks.values %>% ggplot(aes(x=as.numeric(row.names(.)), y=Cooks)) +
+    geom_point() +
+    geom_hline(yintercept=1, linetype="dashed", color = "red") +
+    ylab("Cook's Distance (Square Root Scale)") + 
+    xlab("Index") +
+    ggtitle("Cook's Distance Distribution") +
+        scale_y_continuous(trans='sqrt') +
+    theme_bw()  -> cooks_plot
+
+  cooks_plot
+  
+@
+
+\item{\textbf{Summarize the findings of your final models}}
 \begin{enumerate}[i.]
 \item Fitted Model
-<<>>=
-xtable(round(summary(mod.accur.prelim.full)$coefficients,4))
+<<results=FALSE>>=
+xtable(round(summary(step.reduced.accur)$coefficients,4))
 @
 
 
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrrrr}
   \hline
  & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
   \hline
 (Intercept) & 0.18 & 0.03 & 6.49 & 0.00 \\ 
-  Plural2 & -1.23 & 0.14 & -8.97 & 0.00 \\ 
-  Plural3 & -1.03 & 0.63 & -1.64 & 0.10 \\ 
-  SexMale & 0.11 & 0.03 & 3.51 & 0.00 \\ 
-  MomAgeSC & 0.09 & 0.02 & 5.14 & 0.00 \\ 
-  WeeksSC & 0.17 & 0.03 & 5.26 & 0.00 \\ 
-  BlackTRUE & -0.22 & 0.05 & -4.66 & 0.00 \\ 
-  GainedSC & 0.12 & 0.02 & 7.80 & 0.00 \\ 
+  Twin & -1.23 & 0.14 & -8.97 & 0.00 \\ 
+  Triplet & -1.03 & 0.63 & -1.64 & 0.10 \\ 
+  Male & 0.11 & 0.03 & 3.51 & 0.00 \\ 
+  MomAge (SC) & 0.09 & 0.02 & 5.14 & 0.00 \\ 
+  Weeks (SC) & 0.17 & 0.03 & 5.26 & 0.00 \\ 
+  Black & -0.22 & 0.05 & -4.66 & 0.00 \\ 
+  Gained (SC) & 0.12 & 0.02 & 7.80 & 0.00 \\ 
   SmokeYes & -0.27 & 0.05 & -5.22 & 0.00 \\ 
   PremieYes & 0.85 & 0.10 & 8.10 & 0.00 \\ 
-  Plural2:WeeksSC & -0.30 & 0.07 & -4.25 & 0.00 \\ 
-  Plural3:WeeksSC & -0.10 & 0.21 & -0.46 & 0.65 \\ 
+  Twin:Weeks (SC) & -0.30 & 0.07 & -4.25 & 0.00 \\ 
+  Triplet:Weeks (SC) & -0.10 & 0.21 & -0.46 & 0.65 \\ 
   MomAgeSC:SmokeYes & -0.10 & 0.05 & -2.16 & 0.03 \\ 
-  WeeksSC:BlackTRUE & 0.16 & 0.05 & 3.05 & 0.00 \\ 
-  WeeksSC:GainedSC & -0.04 & 0.02 & -2.50 & 0.01 \\ 
+  WeeksSC:Black & 0.16 & 0.05 & 3.05 & 0.00 \\ 
+  WeeksSC:Gained (SC) & -0.04 & 0.02 & -2.50 & 0.01 \\ 
   WeeksSC:SmokeYes & -0.15 & 0.04 & -3.56 & 0.00 \\ 
   WeeksSC:PremieYes & 1.11 & 0.06 & 18.45 & 0.00 \\ 
-  BlackTRUE:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
-  BlackTRUE:PremieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
+  Black:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
+  Black:PremieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
    \hline
 \end{tabular}
 \end{table}
 
 \item Confidence intervals for partial slope parameters
-<<>>=
+<<results=FALSE>>=
 xtable(confint2000<-confint(model.3.assu, level=0.95))
 @
-\begin{table}[ht]
+\begin{table}[H]
 \centering
 \begin{tabular}{rrr}
   \hline
  & 2.5 \% & 97.5 \% \\ 
   \hline
 (Intercept) & 0.03 & 0.16 \\ 
-  TwinTRUE & -1.36 & -0.88 \\ 
-  TripletTRUE & -2.21 & -0.73 \\ 
-  SexMale & 0.07 & 0.23 \\ 
-  MomAgeSC & 0.08 & 0.16 \\ 
-  WeeksSC & 0.36 & 0.48 \\ 
-  BlackTRUE & -0.29 & -0.10 \\ 
-  GainedSC & 0.13 & 0.21 \\ 
+  Twin & -1.36 & -0.88 \\ 
+  Triplet & -2.21 & -0.73 \\ 
+  Male & 0.07 & 0.23 \\ 
+  MomAge (SC) & 0.08 & 0.16 \\ 
+  Weeks (SC) & 0.36 & 0.48 \\ 
+  Black & -0.29 & -0.10 \\ 
+  Gained (SC) & 0.13 & 0.21 \\ 
   SmokeYes & -0.45 & -0.22 \\ 
   PremieYes & -0.52 & -0.19 \\ 
    \hline
@@ -1363,7 +1457,7 @@ xtable(confint2000<-confint(model.3.assu, level=0.95))
 
 \end{enumerate}
 
-Highest Accuracy Model:
+Highest Accuracy Model: -> mod.accur.prelim.full 
 \begin{align*}
 \hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \\
 &\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
@@ -1371,7 +1465,7 @@ Highest Accuracy Model:
 &\quad + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
 
-Non-Interact Assumptions Model
+Non-Interact Assumptions Model -> model.3.assu
 \begin{align*}
 \hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \\
 &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\
