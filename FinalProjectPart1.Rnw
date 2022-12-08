@@ -8,13 +8,14 @@
 \usepackage{graphicx}%For including graphics
 \usepackage{hyperref}%For Hyperlinks
 \usepackage{natbib}%For the bibliography
+\bibliographystyle{apalike}          % For the bibliography
 \usepackage{parskip}%removes indents
 \usepackage{color}%For colors
 \usepackage{paralist}
 \usepackage{enumerate}%allows us to make lists of items
-\bibliographystyle{apalike}%For the bibliography
 \usepackage[margin=0.80in]{geometry}%A way to change the length and layout of different elements
 \usepackage{float}%Improves the interface for defining floating objects such as figures and tables. 
+\bibliographystyle{apalike}          % For the bibliography
 \newtheorem{definition}{Definition}[section]
 
 \begin{document}
@@ -42,7 +43,7 @@ library("caret")
 library("GGally")
 library("olsrr")
 library("gridExtra")
-library("GGally")
+library("boot")
 source("https://cipolli.com/students/code/plotResiduals.R")
 @
 
@@ -455,7 +456,7 @@ Fitting a first-order linear model with all our acceptable predictor variables, 
 \begin{align*} \hat{y} &= -964.29 - 704.71\cdot \text{I}(\text{Plural} = 2) - 932.13\cdot \text{I}(\text{Plural} = 3) + 93.90\cdot \text{I}(\text{Sex} = \text{Male}) \\ &\quad + 10.88\cdot \text{MomAge} + 97.81\cdot \text{Weeks} -76.88\cdot \text{I}(\text{RaceMom} = \text{Black}) + 81.31\cdot \text{I}(\text{RaceMom} = \text{Chinese}) \\ &\quad -860.40\cdot \text{I}(\text{RaceMom} = \text{Filipino}) + 29.04\cdot \text{I}(\text{RaceMom} = \text{Japanese}) -58.43\cdot \text{I}(\text{RaceMom} = \text{Other\ Asian/PI}) \\ &\quad + 30.78\cdot \text{I}(\text{RaceMom} = \text{White}) -48.07\cdot \text{I}(\text{Marital} = \text{Unmarried}) + 7.87\cdot \text{Gained} \\ &\quad -203.49\cdot \text{I}(\text{Smoke} = \text{Yes}) -217.62\cdot \text{I}(\text{Preemie} = \text{Yes}) \end{align*}
 
   
-<<eval=FALSE>>=
+<<>>=
 #first model = model.1
 lm(BirthWeightGm ~ Plural + Sex + MomAge + Weeks + RaceMom +
      Marital + Gained + Smoke + Preemie, births) -> model.1
@@ -562,7 +563,7 @@ modelSummary(model.2.accur, coef=F, stat=F)
 @
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 <<resids>>
 @
 \caption{Residual Plots of Untransformed Model.} 
@@ -570,7 +571,7 @@ modelSummary(model.2.accur, coef=F, stat=F)
 \end{figure}
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 <<resids.log>>
 @
 \caption{Residual Plots of Logarithmic Model.} 
@@ -609,7 +610,7 @@ cbind(fit.stats, as.data.frame(summary(regsubsets.out)$outmat))
 
 For the assumption model, we found that the AIC-based technique, the BIC-based technique, and the regression subset technique all agreed that all racial attributes except for Black and Filipino should be removed. BIC also recommended removing the Marital measure and the Filipino measure. We decided to remove all of the variables recommended for removal by the algorithms; the decision to exclude Filipino was fairly easy, as only a single value in our dataset was classified as Filipino. We also were confident in removing Marital because the effect size was extremely low and the significance levels quite high in the AIC-based model that had included it. We thus ended up with the following model: 
 
-<<result=FALSE, eval=FALSE>>=
+<<result=FALSE>>=
 model.3.assu <- lm(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
                       GainedSC + Smoke + Preemie,
                     births)
@@ -638,7 +639,7 @@ xtable(model.3.assu, caption="Predictor Statistics and Significance for Pruned F
 \end{table}
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 modelSummary(model.3.assu, coef=F)
 @
 \caption{"Residual Plots of Pruned Non-Transformed Model"}
@@ -674,7 +675,7 @@ cbind(fit.stats, as.data.frame(summary(regsubsets.out)$outmat))
 
 Just as with the model for the non-transformed weights, the same variables - all levels of race except for Black, as well as marital status - were recommended to be removed in the model with the $log$ transformation of the weights. Having done so, in Table \ref{pruned.first.model.log}, we found that all remaining variables were significant with $p$-values $<0.05$. 
 
-<<results=FALSE, eval=FALSE>>=
+<<results=FALSE>>=
 model.3.accur <- lm(WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
                       GainedSC + Smoke + Preemie, births)
 
@@ -702,7 +703,7 @@ xtable(model.3.accur, caption="Predictor Statistics and Significance for Pruned 
 \label{pruned.first.model.log}
 \end{table}
 
-<<eval=FALSE>>=
+<<>>=
 modelSummary(model.3.assu, coef=F, plot=F)
 
 @
@@ -750,7 +751,7 @@ rbind(model.cval.LOO.accur$results,
 \label{cross.val.log}
 \end{table}
 
-<<results=FALSE>>=
+<<eval=FALSE>>=
 specs <- trainControl(method="LOOCV")
 model.cval.LOO.assu <- train(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
                       GainedSC + Smoke + Preemie, data=births,
@@ -797,7 +798,7 @@ In both Table \ref{cross.val.log} and \ref{cross.val.un}, it is apparent that th
 After obtaining our new model, we were curious as to how some of the predictors influenced the data set. Premature births means that the baby was born weeks before the predicted due date, and its commonly known that "Preemies" have low birth weights. They are also some of the more important subject to have accurate weight predictions of, because of their often-delicate health condition and the importance that greater levels of development can bring with it. We calculated the residuals of our models for the entire dataset, just the premature births, and just the non-premature births, and created plots comparing the distribution of residuals for each of the subsets of the data. 
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 predictForSubsets(model.3.assu, "WeightGmSC", 
                   births, 
                   births %>% filter(Preemie=="Yes"),
@@ -809,7 +810,7 @@ predictForSubsets(model.3.assu, "WeightGmSC",
 \end{figure}
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 predictForSubsets(model.3.accur, "WeightLogSC", 
                   births,
                   births %>% filter(Preemie=="Yes"),
@@ -900,7 +901,7 @@ xtable(model.interact.accur, caption="Predictor Statistics and Significance for 
 \caption{Predictor Statistics and Significance for Log-Transformed Interaction Model} 
 \label{interact.model.log}
 \end{table}
-<<eval=FALSE>>=
+<<>>=
 modelSummary(model.interact.accur, coef=F, plot=F)
 @
 
@@ -1005,7 +1006,7 @@ After conducting k-fold and leave-one-out cross validation, we find that they ar
 Similar to our estimates with the earlier model, we wanted to see how the model performed on the three sections of the dataset, our full dataset, the premature births, and the non-premature births. 
 
 \begin{figure}
-<<eval=FALSE>>=
+<<>>=
 predictForSubsets(step.reduced.accur, "WeightLogSC", 
                   births,
                   births %>% filter(Preemie=="Yes"),
@@ -1116,7 +1117,7 @@ The following are the descriptions and linear regressions of our two final model
 \begin{enumerate}[a.]
 \item \textbf{Assess (and summarize) Model Diagnostics}\\
 We wrote a function to perform our assumptions on one of our final models, \textbf{step.reduced.accur}, and assessed the results below.
-<<eval=FALSE>>=
+<<>>=
 assessModel <- function(model, p) {
   print(modelSummary(model, plots=F))
   cbind(vif(model), vif(model)[,3]^2)
@@ -1158,7 +1159,7 @@ assessModel <- function(model, p) {
   cooks.strong <- cooks.values %>% filter(cooks>1)
   print(paste("Strong C. Values:", nrow(cooks.strong)))
 }
-assessModel(step.reduced.accur, 16, "WeightLogSC")
+assessModel(step.reduced.accur, 16)
 @
 \begin{enumerate}[i.]
 \item Independence and Representativeness \\
@@ -1230,8 +1231,7 @@ Our function first calculated 191 high leverage values and 100 very high leverag
   #leverage points
   lev <- step.reduced.accur$model %>% mutate(h.values = hatvalues(step.reduced.accur))
   #high leverage points 
-  print(summary(lev$h.values))
-  n <- nrow(model$model)
+  n <- nrow(step.reduced.accur$model)
   
   high.lev <- lev %>% filter(h.values > 2*p/n)
   #very high leverage points
@@ -1471,5 +1471,7 @@ Non-Interact Assumptions Model -> model.3.assu
 &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\
 &\quad - 0.3343\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.3577\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
+
+\bibliography{bibliography.bib}
 
 \end{document}
