@@ -1,0 +1,86 @@
+\begin{thebibliography}{}
+
+\bibitem[Auguie, 2017]{gridExtra}
+Auguie, B. (2017).
+\newblock {\em gridExtra: Miscellaneous Functions for "Grid" Graphics}.
+\newblock R package version 2.3.
+
+\bibitem[Dahl et~al., 2019]{xtable}
+Dahl, D.~B., Scott, D., Roosen, C., Magnusson, A., and Swinton, J. (2019).
+\newblock {\em xtable: Export Tables to LaTeX or HTML}.
+\newblock R package version 1.8-4.
+
+\bibitem[Davison and Hinkley, 1997]{bootstrap}
+Davison, A.~C. and Hinkley, D.~V. (1997).
+\newblock {\em Bootstrap Methods and Their Applications}.
+\newblock Cambridge University Press, Cambridge.
+\newblock ISBN 0-521-57391-2.
+
+\bibitem[Fox and Weisberg, 2019]{regression}
+Fox, J. and Weisberg, S. (2019).
+\newblock {\em An {R} Companion to Applied Regression}.
+\newblock Sage, Thousand Oaks {CA}, third edition.
+
+\bibitem[Hebbali, 2020]{olsrr}
+Hebbali, A. (2020).
+\newblock {\em olsrr: Tools for Building OLS Regression Models}.
+\newblock R package version 0.5.3.
+
+\bibitem[Kuhn, 2022]{caret}
+Kuhn, M. (2022).
+\newblock {\em caret: Classification and Regression Training}.
+\newblock R package version 6.0-93.
+
+\bibitem[McLeod et~al., 2020]{bestglm}
+McLeod, A., Xu, C., and Lai, Y. (2020).
+\newblock {\em bestglm: Best Subset GLM and Regression Utilities}.
+\newblock R package version 0.37.3.
+
+\bibitem[Millard, 2013]{EnvStats-book}
+Millard, S.~P. (2013).
+\newblock {\em EnvStats: An R Package for Environmental Statistics}.
+\newblock Springer, New York.
+
+\bibitem[Pedersen, 2022]{patchwork}
+Pedersen, T.~L. (2022).
+\newblock {\em patchwork: The Composer of Plots}.
+\newblock R package version 1.1.2.
+
+\bibitem[{R Core Team}, 2022]{R}
+{R Core Team} (2022).
+\newblock {\em R: A Language and Environment for Statistical Computing}.
+\newblock R Foundation for Statistical Computing, Vienna, Austria.
+
+\bibitem[Schloerke et~al., 2021]{ggally}
+Schloerke, B., Cook, D., Larmarange, J., Briatte, F., Marbach, M., Thoen, E.,
+  Elberg, A., and Crowley, J. (2021).
+\newblock {\em GGally: Extension to 'ggplot2'}.
+\newblock R package version 2.1.2.
+
+\bibitem[Searing, 2017]{washpost}
+Searing, L. (2017).
+\newblock {\em The Big Number: Average U.S. Birth Weight Drops 2.4 Ounces in
+  23-Year Period}.
+\newblock The Washington Post.
+
+\bibitem[University, ]{stanford}
+University, S.
+\newblock {\em Stanford Medicine Children's Health.}
+\newblock Stanford Medicine Children's Health - Lucile Packard Children's
+  HospitalStanford.
+
+\bibitem[Wickham, 2016]{ggplot2}
+Wickham, H. (2016).
+\newblock {\em ggplot2: Elegant Graphics for Data Analysis}.
+\newblock Springer-Verlag New York.
+
+\bibitem[Wickham et~al., 2019]{tidyverse}
+Wickham, H., Averick, M., Bryan, J., Chang, W., McGowan, L.~D., François, R.,
+  Grolemund, G., Hayes, A., Henry, L., Hester, J., Kuhn, M., Pedersen, T.~L.,
+  Miller, E., Bache, S.~M., Müller, K., Ooms, J., Robinson, D., Seidel, D.~P.,
+  Spinu, V., Takahashi, K., Vaughan, D., Wilke, C., Woo, K., and Yutani, H.
+  (2019).
+\newblock Welcome to the {tidyverse}.
+\newblock {\em Journal of Open Source Software}, 4(43):1686.
+
+\end{thebibliography}

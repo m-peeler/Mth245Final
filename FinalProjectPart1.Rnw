@@ -8,7 +8,6 @@
 \usepackage{graphicx}%For including graphics
 \usepackage{hyperref}%For Hyperlinks
 \usepackage{natbib}%For the bibliography
-\bibliographystyle{apalike}          % For the bibliography
 \usepackage{parskip}%removes indents
 \usepackage{color}%For colors
 \usepackage{paralist}
@@ -49,8 +48,9 @@ source("https://cipolli.com/students/code/plotResiduals.R")
 
 \section{\textbf{Abstract}}
 \textbf{Background:} According to The Washington Post, the average birth weight of American infants has dropped 453.592 grams between 1990 and 2013, making the average birth weight 3247.721 grams. While, this drop in weight may not seem significant, it brings us closer to an average low birth weight which is classified as 2,500 grams or less. Stanford University released a study on how low birth weights can impose health issues on children. Such issues include infection, breathing problems and immature lungs, nervous system problems, bleeding inside the brain, sudden infant death syndrome, and other long term complications such as cerebral palsy, blindness, deafness, developmental delay. Clearly these are extremely high risks and the same study from Stanford listed some social factors of the mothers that influence birth weight such as smoking, 
-not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\
-\textbf{Methods:} We will use a linear regression to model the relationship between whether the mother was a smoker, weight gained by the mother, the mother's age, ... and the infant's birth weight. \\ \textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  and interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had *an 83.6 increase in precision and a 7 increase in predictive ability as compared to the first order additive linear model*.
+not gaining enough weight during pregnancy, African-American background,  and the age of the mother being less than 17 or more than 35 years. Awareness of what social factors that influence low birth weights can help with prenatal guidance and care to avoid the potential risks listed above. The purpose of this study is to identify key predictors influencing low birth weights using a sample of infant birth weights and other information collected from North Carolina. \\ \\
+\textbf{Methods:} We will use a linear regression to model the relationship that the mother's smoking status, weight gained by the mother, the mother's age, multiple children being born at once, the gestational length of the pregnancy, the race of the mother, and the premature birth status of the child have on the infant's birth weight. \\ \\
+\textbf{Findings:} After making adjustments to the initial model such as transformations, centering,  nd interactions, we determined our final best model to predict which factors have the most influence on birth weight. Our final model had a residual mean standard error decreased by nearly 20 percent, and our $R^2_{adj}$ saw an increase by nearly 44 percent, resulting in a model which was much more predictive of both trends and actual birth weights.
 
 
 \section{Introduction}
@@ -127,15 +127,15 @@ births <- prepData()
 \section{Exploratory Data Analysis}
 We established some assumptions based of our common knowledge and preliminary research before beginning our Data Analysis. 
 
-\begin{enumerate}[a.]
+\begin{enumerate}[a.] % 1 Start
 \item Weeks of gestation period and birth weight would be heavily correlated.
 \item Smoking would have an effect on the birth weight. 
 \item Instances where the mother's race is black would correspond to low birth weights. 
-\end{enumerate} 
+\end{enumerate} % 1 End
 
 We will reference these assumptions throughout the paper and how they were either accurate or disproved by our models. \\
 
-\begin{enumerate}[a.]
+\begin{enumerate}[a.] % 2 Start
 
 \item \textbf{Graphically and Numerically Summarize Variables from the Dataset} \\
 
@@ -203,7 +203,7 @@ violin.MomAge + violin.BirthWeightGm + violin.GestationPeriod + violin.MomGained
 \label{ViolinSummary}
 \end{figure}
 
-From \ref{ViolinSummary} there is noticeable variability in all of the quantitative variables. We also noticed that the plots for Birthweights and Gestation Period showed many outliers on the lower tail, indicating low birth weights. 
+As Figure \ref{ViolinSummary} demonstrates, there is noticeable variability in all of the quantitative variables. We also noticed that the plots for birth weights and gestation period showed many outliers on the lower tail, indicating low birth weights. 
 
 We also wanted to visualize the distributions of these variables.
 
@@ -258,7 +258,7 @@ histogram.BirthWeight + histogram.Gestation + histogram.MomAge + histogram.Gaine
 \label{HistogramSummary}
 \end{figure}
 
-\ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. We expected the distribution for birth weights and weeks of gestation to be similar in shape because those two variables are commonly known to be correlated. Typically babies that are born prematurely have low birth weights. 
+Figure \ref{HistogramSummary} shows that the quantitative variables do not follow normal distributions and are all skewed. We expected the distribution for birth weights and weeks of gestation to be similar in shape because those two variables are commonly known to be correlated. Typically babies that are born prematurely have low birth weights. 
 
 We did find it interesting though, that the premature weights in the dataset influence the distribution more than we expected. 
 
@@ -307,6 +307,8 @@ The median birth weight, M, calculated from our dataset was 3,345.3 grams. Our C
                                 varianceW=var(Gained)))
 
 (var(births$Gained))
+@
+<<results=FALSE>>=
 
 xtable(sumstats)
 @
@@ -328,9 +330,12 @@ xtable(sumstats)
 
 One of our initial assumptions pertained to the race of the mother, so we wanted to visualize this categorical variable with preemie, another categorical variable. The bar chart below shows the percentage of race that corresponds to the number of premature and not premature babies. 
 
-\includegraphics{./RacePremiePercent.jpg}
+\begin{figure}
+\includegraphics[scale=0.75]{./RacePremiePercent.jpg}
+\caption{Distribution of Race by Premature and Non-Premature Status}
+\end{figure}
 
- We can see that white has the highest percentages for both preemies and non-preemies, however this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. 
+We can see in Figure \ref{RacePreemiePct} that while whites make up the majority of both preemies and non-preemies, this does not necessarily mean that white is the most significant race predictor. There are 885 instances in which the mother of the child is white, which is more than half the dataset. So we focused on the race with a higher percentage of preemies compared to non-preemies, which was black. This observation aligns with our initial assumption that black should appear in our model. Further, we can notice in the table that whites make up a small proportion of premature babies than they do of non-premature babies, a difference almost completely made up for by the increase in proportional of premature births for Blacks. This higher likelihood to have premature births could lead to decreases in birth weight being associated with Black mothers.
 
 \item\textbf{Scatterplot Matrix and Table of Correlations}
 <<CorrelationSummary, eval=FALSE, echo=TRUE>>=
@@ -343,13 +348,13 @@ correlationsmatrix
 <<echo=FALSE, fig.dim=c(5,4)>>=
 <<CorrelationSummary>>
 @
-\caption{Matrix of ScatterPlots and Correlations for the variables.}
+\caption{Matrix of Scatter Plots and Correlations for the variables.}
 \label{CorrelationSummary}
 \end{figure}
 
-From \ref{CorrelationSummary} we can see that the relationship between birth weight and weeks coincides with our initial assumption, and they are correlated. However, we expected the correlation coefficient to be closer to 1 and it was only 0.585. Though the coefficients for the other variables in the matrix were positive, they were not high enough to be significant. Therefore, we could not make any assumptions about the model and which quantitative variables would be included at this point.
+From Figure \ref{CorrelationSummary} we can see that the relationship between birth weight and weeks coincides with our initial assumption, and they are correlated. However, we expected the correlation coefficient to be closer to 1 and it was only 0.585. Though the coefficients for the other variables in the matrix were positive, they were not high enough to be significant. Therefore, we could not make any assumptions about the model and which quantitative variables would be included at this point.
 
-\end{enumerate}
+\end{enumerate} % 2 End
 
 Before we began with our first order model, we eliminated Low, a catagorical predictor that indicates true if the birth weight was low and false if the birth weight was not low. This attribute is originally calculated off of birth weight, which is our response variable. Excluding this predictor from the model eliminates any skew or strong false influence in our model from data that we could not know without having already had the response variable provided to us.
 
@@ -610,7 +615,7 @@ cbind(fit.stats, as.data.frame(summary(regsubsets.out)$outmat))
 
 For the assumption model, we found that the AIC-based technique, the BIC-based technique, and the regression subset technique all agreed that all racial attributes except for Black and Filipino should be removed. BIC also recommended removing the Marital measure and the Filipino measure. We decided to remove all of the variables recommended for removal by the algorithms; the decision to exclude Filipino was fairly easy, as only a single value in our dataset was classified as Filipino. We also were confident in removing Marital because the effect size was extremely low and the significance levels quite high in the AIC-based model that had included it. We thus ended up with the following model: 
 
-<<result=FALSE>>=
+<<results=FALSE>>=
 model.3.assu <- lm(WeightGmSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + Black +
                       GainedSC + Smoke + Preemie,
                     births)
@@ -646,7 +651,7 @@ modelSummary(model.3.assu, coef=F)
 \ref{prune.resid}
 \end{figure}
 
-In our new model, according to Table \ref{pruned.first.model.un}, all remaining variables have coefficients with $p$-values $< 0.05$, indicating that the values for $\beta_i$ all fall either above or below 0. $R^2$ sees a slight decrease, but $R^2_{adj}$ is now closer to $R^2$, as $R^2 - R^2_{adj}$ goes from 0.0058 to 0.0035. Further, according to Figure \ref{prune.resid}, our residuals have remained roughly constant, compared to \ref{resid.plots.un}, and our quantile departure is approximately the same.
+In our new model, according to Table \ref{pruned.first.model.un}, all remaining variables have coefficients with $p$-values $< 0.05$, indicating that the values for $\beta_i$ all fall either above or below 0. $R^2$ sees a slight decrease, but $R^2_{adj}$ is now closer to $R^2$, as $R^2 - R^2_{adj}$ goes from 0.0058 to 0.0035. Further, according to Figure \ref{prune.resid}, our residuals have remained roughly constant, compared to Figure \ref{resid.plots.un}, and our quantile departure is approximately the same.
 
 <<>>=
 x <- model.matrix(model.2.accur)[,-1]
@@ -656,11 +661,11 @@ y <- births$WeightLogSC
 xy <- as.data.frame(cbind(x,y))
 best.subsets.aic <- bestglm(xy, IC="AIC", TopModels = 5)
 best.model.aic <- best.subsets.aic$BestModel
-modelSummary(best.model.aic)
+modelSummary(best.model.aic, plot=F)
 
 best.subsets.bic <- bestglm(xy, IC="BIC", TopModels = 5)
 best.model.bic <- best.subsets.bic$BestModel
-modelSummary(best.model.bic)
+modelSummary(best.model.bic, plot=F)
 
 regsubsets.out <- regsubsets(WeightLogSC ~ Plural + Sex + MomAgeSC + WeeksSC + RaceMom +
                                Marital + GainedSC + Smoke + Preemie,
@@ -958,7 +963,7 @@ modelSummary(step.reduced.accur, coef=F, plot=F)
 
 This leaves us with a total of 18 regression attributes with associated estimated linear regression coefficients, of which all but 3 have significant $p$-values. 
 
-<<results=FALSE>>=
+<<results=FALSE, eval=FALSE>>=
 specs <- trainControl(method="LOOCV")
 model.cval.LOO <- train( WeightLogSC ~ Twin + Triplet + Sex + MomAgeSC + WeeksSC + 
                   Black + GainedSC + Smoke + Preemie + Twin:WeeksSC + Triplet:WeeksSC + MomAgeSC:Smoke + 
@@ -1097,30 +1102,44 @@ In Table \ref{vif.val.assu}, we see that all VIF values fall below 3, and are th
 \section{Final Model(s) and Conclusions.}
 
 The following are the descriptions and linear regressions of our two final models:
-\begin{enumerate}
-\item \textbf{step.reduced.accur}:
+\begin{enumerate} % 3 Start
 
-
-
-
-\item \textbf{model.3.assu}:
-
-
+\item \textbf{$log$ Pruned Quadraatic Interaction}:
 
 \begin{align*}
-\hat{y} &= 0.0948 + -1.1201\cdot I(Twin = \text{TRUE}) + -1.4721\cdot I(Triplet = \text{TRUE}) + 0.1522\cdot I(Sex = \text{Male}) \\ &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot I(Black = \text{TRUE}) \\ &\quad + 0.1738\cdot \text{GainedSC} - 0.3343\cdot I(Smoke = \text{Yes}) - 0.3577\cdot I(Preemie = \text{Yes})
+\hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) \\
+&\quad + 0.0912\cdot \text{MomAgeSC} + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} \\
+&\quad - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) - 0.2970\cdot \text{I}(\text{Twin} = \text{TRUE})\cdot \text{WeeksSC} \\
+&\quad - 0.0969\cdot \text{I}(\text{Triplet} = \text{TRUE})\cdot \text{WeeksSC} - 0.1005\cdot \text{MomAgeSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \\ 
+&\quad + 0.1588\cdot \text{WeeksSC}\cdot \text{I}(\text{Black} = \text{TRUE}) - 0.0422\cdot \text{WeeksSC}\cdot \text{GainedSC} - 0.1502\cdot \text{WeeksSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \\
+&\quad + 1.1080\cdot \text{WeeksSC}\cdot \text{I}(\text{Preemie} = \text{Yes}) + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) \\
+&\quad + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
 \end{align*}
-\end{enumerate}
 
 
 
-\begin{enumerate}[a.]
+\item \textbf{Nontransformed Pruned First-Order Model}:
+
+\begin{align*}
+\hat{y} &= 0.0948 + -1.1201\cdot I(\text{Twin} = \text{TRUE}) + -1.4721\cdot I(\text{Triplet} = \text{TRUE}) + 0.1522\cdot I(Sex = \text{Male}) \\ &\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot I(Black = \text{TRUE}) \\ &\quad + 0.1738\cdot \text{GainedSC} - 0.3343\cdot I(Smoke = \text{Yes}) - 0.3577\cdot I(Preemie = \text{Yes})
+\end{align*}
+
+\end{enumerate} % 3 End
+
+
+
+\begin{enumerate}[a.] % 4 Start
 \item \textbf{Assess (and summarize) Model Diagnostics}\\
 We wrote a function to perform our assumptions on one of our final models, \textbf{step.reduced.accur}, and assessed the results below.
 <<>>=
-assessModel <- function(model, p) {
+assessModel <- function(model, p, gvif=F) {
   print(modelSummary(model, plot=F))
-  cbind(vif(model), vif(model)[,3]^2)
+  if(gvif) {
+      cbind(vif(model), vif(model)[,3]^2)
+  }  else {
+    vif(model)
+  }
+  
   print(summary(model$residual))
   print(confint(model))
   
@@ -1161,13 +1180,13 @@ assessModel <- function(model, p) {
 }
 assessModel(step.reduced.accur, 16)
 @
-\begin{enumerate}[i.]
+\begin{enumerate}[i.] % 5 Start
 \item Independence and Representativeness \\
 
-Our data comes from the Stat2Data library, and the data was pulled from a dataset originally collected by the North Carolina State Center for Health and Environmental Statistics. We could not find information on how the data was collected, however the dataset was created by statistician John Holcomb at Cleveland State University. Given that the data is in the Stat2Data library and was created by a statistician, we believe that the dataset must have been thoroughly vetted and must have met the requirements for independence and representativeness to be published. Though, we do know that the North Carolina State Center for Health and Environmental Statistics orginally collected the data from all 100 counties in North Carolina, as it is stated on their website. This information tells us that the data is at least somewhat randomized.
+Our data comes from the Stat2Data library, and the data was pulled from a dataset originally collected by the North Carolina State Center for Health and Environmental Statistics. We could not find information on how the data was collected, however the dataset was created by statistician John Holcomb at Cleveland State University. Given that the data is in the Stat2Data library and was created by a statistician, we believe that the dataset must have been thoroughly vetted and must have met the requirements for independence and representativeness to be published. Though, we do know that the North Carolina State Center for Health and Environmental Statistics originally collected the data from all 100 counties in North Carolina, as it is stated on their website. This information tells us that the data is at least somewhat randomized.
 
 \item Multicollinearity \\
-In the previous section we handled multicollinearity in this final model, and \ref{VIF Values} below verifies that all VIFs for all parameters are less than $\leq$ 5, indicating moderate multicollinearity within the model. 
+In the previous section we handled multicollinearity in this final model, and Table \ref{VIF Values} below verifies that all VIFs for all parameters are less than $\leq$ 5, indicating moderate multicollinearity within the model. 
 
 <<step.reduced.accur.vif, eval=FALSE, echo=TRUE>>=
 xtable(cbind(vif(step.reduced.accur), vif(step.reduced.accur)[,3]^2))
@@ -1185,19 +1204,19 @@ xtable(cbind(vif(step.reduced.accur), vif(step.reduced.accur)[,3]^2))
   Black & 1.59 \\ 
   Gained (SC) & 1.04 \\ 
   Smoke & 1.34 \\ 
-  Premie & 4.95 \\ 
+  Preemie & 4.95 \\ 
   Plural:Weeks (SC) & 3.70 \\ 
-  MomAgeSC:Smoke & 1.24 \\ 
-  WeeksSC:Black & 3.51 \\ 
-  WeeksSC:Gained (SC) & 1.30 \\ 
-  WeeksSC:Smoke & 1.40 \\ 
-  WeeksSC:Premie & 7.91 \\ 
+  MomAge (SC):Smoke & 1.24 \\ 
+  Weeks (SC):Black & 3.51 \\ 
+  Weeks (SC):Gained (SC) & 1.30 \\ 
+  Weeks (SC):Smoke & 1.40 \\ 
+  Weeks (SC):Preemie & 7.91 \\ 
   Black:Smoke & 1.44 \\ 
-  Black:Premie & 3.64 \\ 
+  Black:Preemie & 3.64 \\ 
    \hline
 \end{tabular}
-\label{VIF Values}
 \caption{VIF values for predictors in our final model.}
+\label{VIF Values}
 \end{table}
 
 \item Constant Variance/Normality of Errors\\
@@ -1210,17 +1229,16 @@ plotResiduals(step.reduced.accur)
 <<echo=FALSE, fig.dim=c(8,7)>>=
 <<step.reduced.accur.residuals>>
 @
-\caption{The residuals for our final model.}
+\caption{Residuals for Final Logarithimic Pruned Model.}
 \label{step.reduced.accur.residuals}
 \end{figure}
-\ref{step.reduced.accur.residuals}: A figure of some diagnostic plots for the linear model where Y is birth weights and the predictors are Plural, Sex, MomAgeSC, WeeksSC, Black, GainedSC, Smoke, Premie, Plural:WeeksSC, MomAgeSC:Smoke, WeeksSC:Black, WeeksSC:GainedSC, WeeksSC:Smoke, WeeksSC:Premie, Black:Smoke, and Black:Premie.
 
-As seen in \ref{step.reduced.accur.residuals}, the constant variance assumption is met for the most part and the normality assumption is met. 
-\end{enumerate}
+As see in Figure \ref{step.reduced.accur.residuals}, the constant variance assumption and normality assumptions appear to be generally met by our logarithmic pruned model. They are not nearly as good as the original pruned first-order nontransformed model, but they remain relatively close to the normal.
+\end{enumerate} % 5 End
 
 \item{\textbf{Influence analysis}}
-\begin{enumerate}[i.]
-\item Leverage Points \\
+\begin{enumerate}[i.] % 6 Start
+\item{Leverage Points}
 
 From our Exploratory Analysis, we already knew that we had some outline instances. This section will help us determine if any of those outliers are actually significant.
 
@@ -1262,8 +1280,8 @@ Our function first calculated 191 high leverage values and 100 very high leverag
   0.001977 & 0.003557 & 0.006024 & 0.013485 & 0.012288 & 0.942679 \\
    \hline
 \end{tabular}
-\label{High Leverage Values Quantile Summary}
 \caption{High Leverage Values Quantile Summary.}
+\label{High Leverage Values Quantile Summary}
 \end{table}
 
 
@@ -1279,8 +1297,8 @@ Next, our function output the summaries of the Standardized/Studentized Residual
   -7.313842 & -0.546892 & 0.022207 & -0.000838 & 0.642574 & 4.483741 \\
    \hline
 \end{tabular}
-\label{Standardized Residuals Quantile Summary}
 \caption{Standardized Residuals Quantile Summary.}
+\label{Standardized Residuals Quantile Summary}
 \end{table}
 
 <<>>=
@@ -1322,8 +1340,8 @@ Next, our function output the summaries of the Standardized/Studentized Residual
   -7.456087 & -0.546754 & 0.022199 & -0.001093 &  0.642438 & 4.514897 \\
    \hline
 \end{tabular}
-\label{Studentized Residuals Quantile Summary}
 \caption{Studentized Residuals Quantile Summary.}
+\label{Studentized Residuals Quantile Summary}
 \end{table}
 
 \item Outliers\\
@@ -1334,29 +1352,29 @@ From our previous calculation of the high leverage values, we found 17 outlier i
 \centering
 \begin{tabular}{rrrrrrrrr}
   \hline
-   WeightLog (SC) & Plural & Sex & MomAge (SC) & Weeks (SC) Black & Gained (SC) & Smoke & Premie \\ 
+   WeightLog (SC) & Plural & Sex & MomAge (SC) & Weeks (SC) Black & Gained (SC) & Smoke & Preemie \\ 
   \hline
-  -1.79825625 & 1 & Male & -0.94445468 & -0.2301192 & FALSE & -0.7639289 & No & No\\
-  -2.02393397 & 1 &  Male & -0.94445468 & 0.5108647 & FALSE & -1.0521654 & Yes &  No \\
-  -2.14180198 & 1 & Female & -0.94445468 & 0.5108647 & FALSE & -1.8448158 & No & No \\
-  -1.90948290 & 1 & Female & -0.28842628  & 1.6223405 & FALSE & -0.9080472 & Yes & No \\ 
-  -1.09672028 & 1 &  Male & -1.27246888 & -2.8235628 &  FALSE & -1.4845202 & No & Yes\\
-  -5.38870953 & 1 & Male & -0.94445468 & -3.5645467 & FALSE  & 0.1728397 & No & Yes\\
-  -3.56718564 & 1 &  Male & 0.03958792 & -2.4530708 & FALSE & 1.0375492 & No & Yes\\
-  -4.53499902 & 1 & Male & 0.20359502 & -1.7120870 & FALSE & -0.7639289 & Yes & Yes\\
-  -6.66311095 & 1 & Male & -0.78044758 & -3.9350386 & FALSE & -0.7639289 & No & Yes\\
-  -5.25485653 & 1 & Female & -1.43647598 & -1.3415950 & FALSE & -0.8359881 & No & Yes\\
-  -7.73678282 & 1 & Male & -1.27246888 &-4.3055305 & TRUE & -1.4124611  & No & Yes\\
-  -8.87263370 & 2 & Female & -1.10846178 & -6.1579902 & TRUE & 0.6772536 & No & Yes\\
-  -2.26329727 & 1 & Male & -0.45243338 & -0.6006112 & TRUE & 0.1728397 & No & No\\
-  -4.02151218 & 1 & Female & -1.43647598 & -4.6760225 & TRUE & -1.4845202 & No & Yes\\
-   0.08477603 & 1 & Female & 0.53160922 & -2.4530708 & TRUE & 0.8934309 & Yes & Yes\\
-  -0.01867841 & 1 & Male & 0.69561632 & -2.8235628 & TRUE & -0.3315742 & No & Yes\\
-  -1.43192750 & 1 & Male & -0.45243338 & 0.1403727 & FALSE & 0.8213718 & No & No\\
+  -1.79825625 & 1 & Male & -0.94445468 & -0.2301192 & FALSE & -0.7639289 & No\\
+  -2.02393397 & 1 &  Male & -0.94445468 & 0.5108647 & FALSE & -1.0521654 & Yes \\
+  -2.14180198 & 1 & Female & -0.94445468 & 0.5108647 & FALSE & -1.8448158 & No \\
+  -1.90948290 & 1 & Female & -0.28842628  & 1.6223405 & FALSE & -0.9080472 & Yes \\ 
+  -1.09672028 & 1 &  Male & -1.27246888 & -2.8235628 &  FALSE & -1.4845202 & No \\
+  -5.38870953 & 1 & Male & -0.94445468 & -3.5645467 & FALSE  & 0.1728397 & No \\
+  -3.56718564 & 1 &  Male & 0.03958792 & -2.4530708 & FALSE & 1.0375492 & No \\
+  -4.53499902 & 1 & Male & 0.20359502 & -1.7120870 & FALSE & -0.7639289 & Yes \\
+  -6.66311095 & 1 & Male & -0.78044758 & -3.9350386 & FALSE & -0.7639289 & No \\
+  -5.25485653 & 1 & Female & -1.43647598 & -1.3415950 & FALSE & -0.8359881 & No \\
+  -7.73678282 & 1 & Male & -1.27246888 &-4.3055305 & TRUE & -1.4124611  & No \\
+  -8.87263370 & 2 & Female & -1.10846178 & -6.1579902 & TRUE & 0.6772536 & No\\
+  -2.26329727 & 1 & Male & -0.45243338 & -0.6006112 & TRUE & 0.1728397 & No \\
+  -4.02151218 & 1 & Female & -1.43647598 & -4.6760225 & TRUE & -1.4845202 & No\\
+   0.08477603 & 1 & Female & 0.53160922 & -2.4530708 & TRUE & 0.8934309 & Yes\\
+  -0.01867841 & 1 & Male & 0.69561632 & -2.8235628 & TRUE & -0.3315742 & No \\
+  -1.43192750 & 1 & Male & -0.45243338 & 0.1403727 & FALSE & 0.8213718 & No \\
    \hline
 \end{tabular}
-\label{}
 \caption{Outliers that are outside the expected departure.}
+\label{outlier.table}
 \end{table}
 
 
@@ -1370,14 +1388,14 @@ From our previous calculation of the high leverage values, we found 17 outlier i
   0.0000000 & 0.0000240 & 0.0001095 & 0.0014421 & 0.0004313 & 0.4464716 \\
    \hline
 \end{tabular}
-\label{Cook's test Quantile Summary}
 \caption{Cook's test Quantile Summary.}
+\label{Cook's test Quantile Summary}
 \end{table}
-\end{enumerate}
+\end{enumerate} % 6 End
 
 After calculating Cook's distane, we found that there were no instances with values greater than 1, and thus no influential observations in the dataset. 
 
-<<>>=
+<<fig.dim=c(8,5)>>=
   cooks.values <- step.reduced.accur$model %>% mutate(Cooks = cooks.distance(step.reduced.accur))
   cooks.values %>% ggplot(aes(x=as.numeric(row.names(.)), y=Cooks)) +
     geom_point() +
@@ -1393,7 +1411,7 @@ After calculating Cook's distane, we found that there were no instances with val
 @
 
 \item{\textbf{Summarize the findings of your final models}}
-\begin{enumerate}[i.]
+\begin{enumerate}[i.] % 7 Start
 \item Fitted Model
 <<results=FALSE>>=
 xtable(round(summary(step.reduced.accur)$coefficients,4))
@@ -1402,32 +1420,63 @@ xtable(round(summary(step.reduced.accur)$coefficients,4))
 
 \begin{table}[H]
 \centering
-\begin{tabular}{rrrrr}
+\begin{tabular}{rrrrrr}
   \hline
- & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+& Estimate & Std. Error & t value & Pr($>$$|$t$|$) & Significance\\
   \hline
-(Intercept) & 0.18 & 0.03 & 6.49 & 0.00 \\ 
-  Twin & -1.23 & 0.14 & -8.97 & 0.00 \\ 
-  Triplet & -1.03 & 0.63 & -1.64 & 0.10 \\ 
-  Male & 0.11 & 0.03 & 3.51 & 0.00 \\ 
-  MomAge (SC) & 0.09 & 0.02 & 5.14 & 0.00 \\ 
-  Weeks (SC) & 0.17 & 0.03 & 5.26 & 0.00 \\ 
-  Black & -0.22 & 0.05 & -4.66 & 0.00 \\ 
-  Gained (SC) & 0.12 & 0.02 & 7.80 & 0.00 \\ 
-  SmokeYes & -0.27 & 0.05 & -5.22 & 0.00 \\ 
-  PremieYes & 0.85 & 0.10 & 8.10 & 0.00 \\ 
-  Twin:Weeks (SC) & -0.30 & 0.07 & -4.25 & 0.00 \\ 
-  Triplet:Weeks (SC) & -0.10 & 0.21 & -0.46 & 0.65 \\ 
-  MomAgeSC:SmokeYes & -0.10 & 0.05 & -2.16 & 0.03 \\ 
-  WeeksSC:Black & 0.16 & 0.05 & 3.05 & 0.00 \\ 
-  WeeksSC:Gained (SC) & -0.04 & 0.02 & -2.50 & 0.01 \\ 
-  WeeksSC:SmokeYes & -0.15 & 0.04 & -3.56 & 0.00 \\ 
-  WeeksSC:PremieYes & 1.11 & 0.06 & 18.45 & 0.00 \\ 
-  Black:SmokeYes & 0.16 & 0.11 & 1.42 & 0.16 \\ 
-  Black:PremieYes & 0.53 & 0.15 & 3.44 & 0.00 \\ 
+(Intercept) & 0.18 & 0.03 & 6.49 & 0.00 & Significant\\
+  Twins & -1.23 & 0.14 & -8.97 & 0.00 & Significant\\
+  Triplets & -1.03 & 0.63 & -1.64 & 0.10 & Not Significant\\
+  SexMale & 0.11 & 0.03 & 3.51 & 0.00 & Significant\\
+  MomAge (SC) & 0.09 & 0.02 & 5.14 & 0.00 & Significant\\
+  Weeks (SC) & 0.17 & 0.03 & 5.26 & 0.00 & Significant\\
+  Black & -0.22 & 0.05 & -4.66 & 0.00 & Significant\\
+  Gained (SC) & 0.12 & 0.02 & 7.80 & 0.00 & Significant\\
+  Smoke & -0.27 & 0.05 & -5.22 & 0.00 & Significant\\
+  Preemie & 0.85 & 0.10 & 8.10 & 0.00 & Significant\\
+  Twins:Weeks (SC) & -0.30 & 0.07 & -4.25 & 0.00 & Significant\\
+  Triplets:Weeks (SC) & -0.10 & 0.21 & -0.46 & 0.65 & Not Significant\\
+  MomAge (SC):Smoke & -0.10 & 0.05 & -2.16 & 0.03 & Significant\\
+  Weeks (SC):Black & 0.16 & 0.05 & 3.05 & 0.00 & Significant\\
+  Weeks (SC):Gained (SC) & -0.04 & 0.02 & -2.50 & 0.01 & Significant\\
+  Weeks (SC):Smoke & -0.15 & 0.04 & -3.56 & 0.00 & Significant\\
+  Weeks (SC):Preemie & 1.11 & 0.06 & 18.45 & 0.00 & Significant\\
+  Black:Smoke & 0.16 & 0.11 & 1.42 & 0.16 & Not Significant\\
+  Black:Preemie & 0.53 & 0.15 & 3.44 & 0.00 & Significant\\
    \hline
 \end{tabular}
+\caption{Summary of Coefficients and Significance.}
+\label{SummaryCoefSign}
 \end{table}
+
+We found it interesting that twins was significant, but triplets were not. This also affected the interaction between triplets and gestation period scaled and centered, making it not significant as well. The interaction between Black and Smoking was also insignificant, which makes sense because we had no research suggesting that race and smoking status may have an interaction. Other than that, we were pleased that all other coefficients that remained in the model were significant to a $p$-value $<0.05$. 
+
+\item Model Output Summary
+<<>>=
+summary(step.reduced.accur)$adj.r.squared
+AIC(step.reduced.accur)
+BIC(step.reduced.accur)
+
+summary(model.3.assu)$adj.r.squared
+AIC(model.3.assu)
+BIC(model.3.assu)
+
+@
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrr}
+  \hline
+   Model & R-Squared Adj &  AIC &  BIC & num.variables & num.parameters\\
+  \hline
+  Nontransformed & 0.4508074 & 3166.111 & 3223.868 & 9 & 9\\
+  Logarithmic Interact & 0.6513524 & 2534.785 & 2639.798 & 8 & 16\\
+  \hline
+\end{tabular}
+\caption{Table containing the output summary of the best models.}
+\label{Model Output Summary}
+\end{table}
+\end{enumerate} % 7 End
 
 \item Confidence intervals for partial slope parameters
 <<results=FALSE>>=
@@ -1437,41 +1486,78 @@ xtable(confint2000<-confint(model.3.assu, level=0.95))
 \centering
 \begin{tabular}{rrr}
   \hline
- & 2.5 \% & 97.5 \% \\ 
+& Lower \% & Upper \% \\
   \hline
-(Intercept) & 0.03 & 0.16 \\ 
-  Twin & -1.36 & -0.88 \\ 
-  Triplet & -2.21 & -0.73 \\ 
-  Male & 0.07 & 0.23 \\ 
-  MomAge (SC) & 0.08 & 0.16 \\ 
-  Weeks (SC) & 0.36 & 0.48 \\ 
-  Black & -0.29 & -0.10 \\ 
-  Gained (SC) & 0.13 & 0.21 \\ 
-  SmokeYes & -0.45 & -0.22 \\ 
-  PremieYes & -0.52 & -0.19 \\ 
+(Intercept) & 0.03 & 0.16 \\
+  TwinTRUE & -1.36 & -0.88 \\
+  TripletTRUE & -2.21 & -0.73 \\
+  SexMale & 0.07 & 0.23 \\
+  MomAge (SC) & 0.08 & 0.16 \\
+  WeeksSC & 0.36 & 0.48 \\
+  Black & -0.29 & -0.10 \\
+  GainedSC & 0.13 & 0.21 \\
+  Smoke & -0.45 & -0.22 \\
+  Preemie & -0.52 & -0.19 \\
    \hline
 \end{tabular}
+\caption{Confidence Intervals for Partial Slope Parameters}
+\label{CIs for Partial Slope Parameters}
 \end{table}
 
-\end{enumerate}
+To calculate confidence intervals, we used our nontransformed first-order model, so that we could interpret the values of the coefficients. We are 95\% confident that each coefficient falls within the ranges of their calculated confidence intervals listed in Table \ref{CIs for Partial Slope Parameters}. For each of these values, the confidence interval does not include the value of 0, which would indicate that, with 95\% confidence, we can say that every attribute's $\beta$ value is not 0, and that the attributes do affect birth weight.
 
-\end{enumerate}
+<<results=FALSE>>=
+xtable(summary(model.3.assu))
+@
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrr}
+  \hline
+ & Estimate & Std. Error & t value & Pr($>$$|$t$|$) \\ 
+  \hline
+(Intercept) & 0.0948 & 0.0337 & 2.81 & 0.0050 \\ 
+  TwinTRUE & -1.1201 & 0.1220 & -9.18 & 0.0000 \\ 
+  TripletTRUE & -1.4721 & 0.3785 & -3.89 & 0.0001 \\ 
+  SexMale & 0.1522 & 0.0396 & 3.85 & 0.0001 \\ 
+  MomAgeSC & 0.1186 & 0.0204 & 5.81 & 0.0000 \\ 
+  WeeksSC & 0.4187 & 0.0292 & 14.35 & 0.0000 \\ 
+  Black & -0.1917 & 0.0481 & -3.98 & 0.0001 \\ 
+  GainedSC & 0.1738 & 0.0200 & 8.70 & 0.0000 \\ 
+  Smoke & -0.3343 & 0.0564 & -5.92 & 0.0000 \\ 
+  PreemieYes & -0.3577 & 0.0848 & -4.22 & 0.0000 \\ 
+   \hline
+\end{tabular}
+\caption{Coefficients of Final Nontransformed First-Order Model}
+\label{coef.mod.assu}
+\end{table}
 
-Highest Accuracy Model: -> mod.accur.prelim.full 
-\begin{align*}
-\hat{y} &= 0.1813 - 1.2273\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.0309\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1110\cdot \text{I}(\text{Sex} = \text{Male}) + 0.0912\cdot \text{MomAgeSC} \\
-&\quad + 0.1688\cdot \text{WeeksSC} - 0.2197\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1250\cdot \text{GainedSC} - 0.2696\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.8473\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
-&\quad - 0.2970\cdot \text{I}(\text{Twin} = \text{TRUE})\cdot \text{WeeksSC} - 0.0969\cdot \text{I}(\text{Triplet} = \text{TRUE})\cdot \text{WeeksSC} - 0.1005\cdot \text{MomAgeSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) \\ &\quad + 0.1588\cdot \text{WeeksSC}\cdot \text{I}(\text{Black} = \text{TRUE}) - 0.0422\cdot \text{WeeksSC}\cdot \text{GainedSC} - 0.1502\cdot \text{WeeksSC}\cdot \text{I}(\text{Smoke} = \text{Yes}) + 1.1080\cdot \text{WeeksSC}\cdot \text{I}(\text{Preemie} = \text{Yes}) \\
-&\quad + 0.1590\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Smoke} = \text{Yes}) + 0.5283\cdot \text{I}(\text{Black} = \text{TRUE})\cdot \text{I}(\text{Preemie} = \text{Yes})
-\end{align*}
+These conclusions are reinforced by Table \ref{coef.mod.assu}. Again, all coefficients are significant. Since this model has no interaction or quadratic terms, we are able to interpret the coefficients in the context of the model. For a standard baby, who is not a twin or triplet, is female, is not Black, has a mother who does not smoke, was not a premature birth, and feel at the center of the distribution of mother's age, gestation period, and weight gained during pregnancy, the intercept indicates to us that this child would be born with a weight approximately 0.0948 standard errors above the normal. For attributes such as being a twin or a triplet, and holding all other values equal, a child would be expected to decrease in weight, by approximately 1.12 or 1.47 standard errors, respectively. Smoking and premature birth both cause reductions in weight by approximately the same amount, those being 0.33 and 0.35 standard errors, respectively; that means that smoking during pregnancy could be as dangerous to the development of a child as it being born weeks before it was fully developed. Finally, as weight gained during pregnancy, mother's age, and gestational period each increased, the birth weight also increased; a 1 standard error increase in mother's age corresponds to a 0.12 standard errors larger in weight, a 1 standard error increase in gestational period corresponds to a 0.42 standard error increase in weight, and a 1 standard error increase in pregnancy weight gained corresponds to a 0.17 standard error increase in weight. Finally, being male corresponds to a 0.15 standard error increase in weight. Each of these conclusions has facial validity to us; smoking, premature birth, having multiple children at once, and being Black are all known in the literature to corresond with lower birth rates, while attributes like male corresponding to a higher birth weight also make since because males are known to be heavier than females. 
 
-Non-Interact Assumptions Model -> model.3.assu
-\begin{align*}
-\hat{y} &= 0.0948 - 1.1201\cdot \text{I}(\text{Twin} = \text{TRUE}) - 1.4721\cdot \text{I}(\text{Triplet} = \text{TRUE}) + 0.1522\cdot \text{I}(\text{Sex} = \text{Male}) \\
-&\quad + 0.1186\cdot \text{MomAgeSC} + 0.4187\cdot \text{WeeksSC} - 0.1917\cdot \text{I}(\text{Black} = \text{TRUE}) + 0.1738\cdot \text{GainedSC} \\
-&\quad - 0.3343\cdot \text{I}(\text{Smoke} = \text{Yes}) - 0.3577\cdot \text{I}(\text{Preemie} = \text{Yes})
-\end{align*}
+\item{Answer to Preliminary Reserach Questions:} \\
+Our preliminary research question asked “Which variables influence birth weight and what changes do they cause in predicting birth weight?” Our model shows that being  a twin or triplet, when the mother is black, a smoker and if the child is a preemie, all have negative correlations to the model and therefore would lessen the birth weight in the equation. Our variables that have a positive influence on the model include if the child is male, the mother’s age, the number of weeks carried, and the mother’s weight gain. In creating our final model, we have found the most influential variables in our dataset and how they affect birthweight, therefore answering our preliminary research question. 
 
-\bibliography{bibliography.bib}
+\item{Summary of Model Improvement:}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{rrrrrrr}
+  \hline
+   Model & $R^2_{adj}$ & RMSE & AIC &  BIC & N. Variables & N. Parameters\\
+  \hline
+  Original & 0.4512 & 0.740 &3170.999 & 3260.260 & 15 & 15 \\
+  Pruned & 0.4508074 & 0.741 & 3166.111 & 3223.868 & 9 & 9\\
+  Pruned $log$ Interact & 0.6513524 & 0.590 & 2534.785 & 2639.798 & 8 & 16\\
+  \hline
+\end{tabular}
+\caption{Summary of Model Improvement.}
+\label{model.improvement.summary}
+\end{table}
+
+As demonstrated by Table \ref{model.improvement.summary}, we saw moderate improvements from our initial model to our final models. While the nontransformed pruned model had slight decreases in $R^2_{adj}$, it was extremely minuscule compared to the reduction from 15 variables and parameters to 9. Further, our improvements in the pruned $log$ interaction model were quite large; our RMSE decreased by nearly 20 percent, and our $R^2_{adj}$ saw an increase by nearly 44 percent. This occurred while AIC and BIC values fell and the total number of parameters rose only by one. This indicates to us major improvements in the model and our ability to accurately approximate the birth weights in our population.
+
+\end{enumerate} % 4 End
+
+\section{Citations}
+We used the \texttt{R} Programming Language for this paper. We additionally used the following packages in \texttt{R}:\\ \texttt{tidyverse}, \texttt{xtable}, \texttt{ggplot2}, \texttt{patchwork}, \texttt{bestglm}, \texttt{EnvStats}, \texttt{car}, \texttt{caret}, \texttt{GGally}, \texttt{olsrr}, \texttt{gridExtra}, and \texttt{boot}. 
 
 \end{document}
